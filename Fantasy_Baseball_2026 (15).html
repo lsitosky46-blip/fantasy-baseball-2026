@@ -1,0 +1,1831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fantasy BB">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1a3c28">
+<meta name="description" content="2026 Fantasy Baseball Tracker - 12 Team 6x6 Rotisserie">
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjogIkZhbnRhc3kgQmFzZWJhbGwgMjAyNiIsICJzaG9ydF9uYW1lIjogIkZhbnRhc3kgQkIiLCAiZGVzY3JpcHRpb24iOiAiMTItVGVhbSA2eDYgUm90aXNzZXJpZSBGYW50YXN5IEJhc2ViYWxsIFRyYWNrZXIiLCAic3RhcnRfdXJsIjogIi4iLCAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwgIm9yaWVudGF0aW9uIjogInBvcnRyYWl0IiwgImJhY2tncm91bmRfY29sb3IiOiAiIzBkMWIyYSIsICJ0aGVtZV9jb2xvciI6ICIjMWEzYzI4IiwgImljb25zIjogW3sic3JjIjogImljb24tMTkyLnBuZyIsICJzaXplcyI6ICIxOTJ4MTkyIiwgInR5cGUiOiAiaW1hZ2UvcG5nIn1dfQ==">
+
+<!-- Apple Touch Icons (various sizes) -->
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="167x167" href="icon-192.png">
+
+<!-- iOS splash screens -->
+<meta name="apple-touch-startup-image" content="icon-192.png">
+
+<title>⚾ Fantasy Baseball 2026</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', system-ui, sans-serif; background: #0d1b2a; color: #e2e8f0; min-height: 100vh; font-size: 14px; }
+button { cursor: pointer; font-family: inherit; }
+input[type=number] { -moz-appearance: textfield; }
+input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+select { font-family: inherit; }
+
+/* NAV */
+.nav { background: linear-gradient(135deg,#1a3c28,#0d2218); padding: 12px 16px 0; border-bottom: 1px solid rgba(255,255,255,0.07); position: sticky; top: 0; z-index: 100; }
+.nav-top { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.nav-brand { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+.nav-sub { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+.nav-tabs { display: flex; gap: 3px; padding-bottom: 1px; flex-wrap: wrap; }
+.nav-tab { padding: 6px 11px; border-radius: 7px 7px 0 0; border: none; font-size: 11px; font-weight: 700; transition: all 0.12s; white-space: nowrap; }
+.nav-tab.active { background: rgba(255,255,255,0.96); color: #1a3c28; }
+.nav-tab:not(.active) { background: rgba(255,255,255,0.09); color: rgba(255,255,255,0.6); }
+
+/* CONTENT */
+.content { padding: 14px 16px; max-width: 1200px; margin: 0 auto; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* CARDS */
+.card { background: #1a2535; border-radius: 12px; padding: 14px; border: 1px solid rgba(255,255,255,0.07); margin-bottom: 12px; }
+.card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+.hint { font-size: 11px; color: rgba(255,255,255,0.4); line-height: 1.6; margin-bottom: 10px; }
+
+/* BUTTONS */
+.btn { padding: 7px 14px; border-radius: 7px; border: none; font-size: 12px; font-weight: 700; font-family: inherit; }
+.btn-green { background: #1A5C2E; color: #fff; }
+.btn-ghost { background: transparent; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.55); }
+.btn-danger { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); color: rgba(239,68,68,0.7); }
+.btn-row { display: flex; gap: 7px; margin-top: 10px; flex-wrap: wrap; }
+
+/* FLASH */
+.flash { padding: 9px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; margin-bottom: 12px; display: none; }
+.flash.ok { background: #2E7D32; color: #fff; }
+.flash.err { background: #b71c1c; color: #fff; }
+
+/* ── DRAFT BOARD ─────────────────────────────── */
+.draft-scroll { overflow-x: auto; }
+.draft-table { min-width: 1100px; width: 100%; border-collapse: collapse; }
+.draft-table th { background: rgba(0,0,0,0.3); font-size: 10px; font-weight: 700; padding: 8px 6px; text-align: center; border: 1px solid rgba(255,255,255,0.06); white-space: nowrap; }
+.draft-table th.slot-hdr { text-align: left; width: 110px; }
+.draft-table td { padding: 3px; border: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
+.draft-table td.slot-label { padding: 10px 8px; font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; text-align: left; }
+.draft-select { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #e2e8f0; font-size: 13px; padding: 8px 6px; outline: none; height: 42px; }
+.draft-select:focus { border-color: rgba(255,255,255,0.35); }
+.draft-select.picked { border-color: rgba(100,200,100,0.4); background: rgba(100,200,100,0.06); }
+tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* ROUND TRACKER */
+.round-scroll { overflow-x: auto; }
+.round-table { min-width: 900px; width: 100%; border-collapse: collapse; font-size: 11px; }
+.round-table th { background: #1A5C2E; color: #fff; font-size: 10px; font-weight: 700; padding: 7px 6px; text-align: center; border: 1px solid rgba(255,255,255,0.08); }
+.round-table td { padding: 5px 6px; border: 1px solid rgba(255,255,255,0.05); text-align: center; color: rgba(255,255,255,0.4); font-size: 10px; }
+.round-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.round-table td.pick-num { font-weight: 600; color: rgba(255,255,255,0.6); }
+
+/* ── STAT TRACKER ────────────────────────────── */
+.team-pills { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 12px; }
+.team-pill { padding: 5px 10px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; transition: all 0.12s; }
+.team-pill.off { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.5); }
+.team-pill.on { background: #1A5C2E; color: #fff; }
+.cat-grid-6 { display: grid; grid-template-columns: repeat(6,1fr); gap: 5px; margin-bottom: 5px; }
+.cat-lbl { font-size: 9px; font-weight: 700; margin-bottom: 2px; letter-spacing: 0.06em; }
+.cat-inp { width: 100%; border-radius: 5px; padding: 5px 4px; color: #e2e8f0; font-size: 12px; outline: none; text-align: center; font-family: inherit; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); }
+.cat-inp.has-val { border-color: rgba(100,180,100,0.4); background: rgba(255,255,255,0.07); }
+.team-entry { padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); margin-bottom: 8px; }
+
+/* STANDINGS */
+.standings-wrap { background: #1a2535; border-radius: 12px; overflow-x: auto; border: 1px solid rgba(255,255,255,0.07); }
+.s-hdr { display: grid; padding: 8px 12px; gap: 3px; background: rgba(0,0,0,0.25); min-width: 700px; }
+.s-row { display: grid; padding: 7px 12px; gap: 3px; align-items: center; border-top: 1px solid rgba(255,255,255,0.04); min-width: 700px; }
+.s-row:nth-child(even) { background: rgba(255,255,255,0.02); }
+.s-cols { grid-template-columns: 100px repeat(12,1fr) 52px 40px; }
+
+/* CATS GRID */
+.cats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; }
+@media(max-width:600px){ .cats-grid { grid-template-columns: repeat(2,1fr); } }
+.cat-card { background: #1a2535; border-radius: 10px; overflow: hidden; }
+.cat-card-hdr { padding: 7px 10px; display: flex; justify-content: space-between; align-items: center; }
+.cat-row { display: flex; align-items: center; justify-content: space-between; padding: 5px 10px; border-top: 1px solid rgba(255,255,255,0.04); font-size: 11px; }
+.cat-row:nth-child(even) { background: rgba(255,255,255,0.02); }
+
+/* MY TEAM */
+.hero { background: #1a2535; border-radius: 12px; padding: 16px; border: 1px solid rgba(255,255,255,0.07); margin-bottom: 12px; }
+.hero-inner { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.bdown-grid { display: grid; grid-template-columns: repeat(2,1fr); }
+.bdown-cell { padding: 10px 13px; border-top: 1px solid rgba(255,255,255,0.05); }
+.bdown-cell:nth-child(odd) { border-right: 1px solid rgba(255,255,255,0.05); }
+.prog-track { height: 3px; background: rgba(255,255,255,0.07); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+.prog-bar { height: 100%; border-radius: 2px; }
+
+/* PASTE */
+.paste-area { width: 100%; min-height: 80px; background: #0d1b2a; color: #e2e8f0; border: 1px solid rgba(255,255,255,0.12); border-radius: 7px; padding: 9px 11px; font-size: 11px; font-family: monospace; resize: vertical; outline: none; }
+.parse-msg { margin-top: 7px; padding: 7px 11px; border-radius: 6px; font-size: 12px; font-weight: 600; display: none; }
+.parse-msg.ok { background: rgba(46,125,50,0.2); color: #86efac; border: 1px solid rgba(46,125,50,0.4); }
+.parse-msg.err { background: rgba(183,28,28,0.2); color: #fca5a5; border: 1px solid rgba(183,28,28,0.4); }
+
+.footer { margin-top: 12px; font-size: 10px; color: rgba(255,255,255,0.18); text-align: center; padding-bottom: 20px; }
+.nav-tabs { flex-wrap: wrap; }
+.team-tab { font-size: 10px !important; padding: 5px 9px !important; }
+.team-roster-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 10px; }
+.roster-slot { background: #1a2535; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.07); }
+.roster-slot-hdr { padding: 7px 12px; font-size: 10px; font-weight: 700; color: #fff; letter-spacing: 0.06em; }
+.roster-slot-val { padding: 8px 12px; font-size: 12px; font-weight: 600; color: #e2e8f0; min-height: 36px; display: flex; align-items: center; }
+.roster-slot-val.empty { color: rgba(255,255,255,0.2); font-style: italic; font-weight: 400; }
+.team-stat-row { display: grid; grid-template-columns: repeat(6,1fr); gap: 5px; margin-top: 12px; }
+.team-stat-box { background: #1a2535; border-radius: 8px; padding: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.07); }
+.team-stat-lbl { font-size: 9px; font-weight: 700; letter-spacing: 0.06em; margin-bottom: 3px; }
+.team-stat-val { font-size: 14px; font-weight: 700; }
+.team-stat-rank { font-size: 9px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+
+/* STAT LOOKUP */
+.lookup-wrap { display: flex; flex-direction: column; gap: 12px; }
+.lookup-search-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.lookup-input { flex: 1; min-width: 180px; background: #0d1b2a; border: 1px solid rgba(255,255,255,0.15); border-radius: 7px; padding: 8px 12px; color: #e2e8f0; font-size: 13px; outline: none; font-family: inherit; }
+.lookup-input:focus { border-color: rgba(255,255,255,0.4); }
+.lookup-results { background: #1a2535; border-radius: 12px; border: 1px solid rgba(255,255,255,0.07); overflow: hidden; }
+.lookup-player-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-top: 1px solid rgba(255,255,255,0.05); flex-wrap: wrap; gap: 8px; }
+.lookup-player-row:first-child { border-top: none; }
+.lookup-player-info { font-size: 13px; font-weight: 600; }
+.lookup-player-team { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+.lookup-stats-row { display: flex; gap: 14px; flex-wrap: wrap; }
+.lookup-stat { text-align: center; }
+.lookup-stat-lbl { font-size: 9px; font-weight: 700; letter-spacing: 0.07em; }
+.lookup-stat-val { font-size: 14px; font-weight: 700; color: #e2e8f0; }
+.lookup-empty { padding: 20px; text-align: center; font-size: 12px; color: rgba(255,255,255,0.3); }
+.lookup-error { padding: 12px 14px; font-size: 12px; color: #fca5a5; }
+.lookup-loading { padding: 20px; text-align: center; font-size: 12px; color: rgba(255,255,255,0.4); }
+.lookup-type-tabs { display: flex; gap: 6px; margin-bottom: 4px; }
+.lookup-type-btn { padding: 5px 12px; border-radius: 6px; border: none; font-size: 11px; font-weight: 700; font-family: inherit; cursor: pointer; }
+.lookup-type-btn.active { background: #1A5C2E; color: #fff; }
+.lookup-type-btn:not(.active) { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.55); }
+
+.refresh-btn { display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:none;
+  background:#1A5C2E;color:#fff;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer; }
+.refresh-btn:disabled { background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.3);cursor:default; }
+.player-stat-row { display:grid;grid-template-columns:1fr repeat(6,52px);gap:4px;align-items:center;
+  padding:6px 10px;border-top:1px solid rgba(255,255,255,0.05);font-size:11px; }
+.player-stat-row:nth-child(even){background:rgba(255,255,255,0.02);}
+.player-stat-row.pitcher { grid-template-columns:1fr repeat(6,52px); }
+.p-name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.p-pos{font-size:9px;color:rgba(255,255,255,0.4);margin-top:1px;}
+.p-val{text-align:center;font-weight:600;color:#e2e8f0;}
+.p-val.loading{color:rgba(255,255,255,0.25);font-style:italic;}
+.p-val.err{color:rgba(248,113,113,0.6);}
+.totals-row{display:grid;gap:4px;padding:8px 10px;background:rgba(26,92,46,0.2);
+  border-top:2px solid rgba(26,92,46,0.5);font-weight:700;}
+.totals-row span{text-align:center;font-size:13px;color:#4ade80;}
+.totals-label{font-size:10px;font-weight:700;color:#4ade80;letter-spacing:0.05em;}
+.section-hdr{padding:7px 10px;background:rgba(0,0,0,0.25);font-size:10px;font-weight:700;
+  color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase;
+  display:grid;gap:4px;align-items:center;}
+.apply-btn{padding:4px 10px;border-radius:5px;border:none;background:#1A5C2E;
+  color:#fff;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.apply-btn:hover{background:#2E7D32;}
+
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-top">
+    <div>
+      <div class="nav-brand">⚾ Fantasy Baseball 2026</div>
+      <div class="nav-sub">11-Team · 6×6 Rotisserie · Tyson Rocco Jim Brad Thad Judd Mike Luke Alex Tom Gary</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:3px;flex-wrap:wrap">
+        <span id="syncStatus" style="font-size:10px;color:rgba(255,255,255,0.35)">⚪ Connecting...</span>
+        <input id="managerNameInput" type="text" placeholder="Your name" value="${localStorage.getItem('fb26_manager')||''}"
+          onchange="localStorage.setItem('fb26_manager',this.value)"
+          style="padding:2px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);font-size:10px;width:80px;outline:none">
+        <button onclick="showSyncKeySetup()" style="padding:2px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.5);font-size:10px;cursor:pointer">🔑 Key</button>
+      </div>
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="switchTab('draft')">🎯 Draft Board</button>
+      <button class="nav-tab" onclick="switchTab('standings')">📊 Standings</button>
+      <button class="nav-tab" onclick="switchTab('treasurer')">💰 Treasurer</button>
+      <button class="nav-tab" onclick="switchTab('cats')">🏆 Categories</button>
+      <button class="nav-tab" onclick="switchTab('lookup')">🔍 Stats</button>
+      <button class="nav-tab team-tab" onclick="switchTab('team_Tyson')">Tyson</button>
+      <button class="nav-tab team-tab" onclick="switchTab('team_Rocco')">Rocco</button>
+      <button class="nav-tab team-tab" onclick="switchTab('team_Jim')">Jim</button>
+      <button class="nav-tab team-tab" onclick="switchTab('team_Brad')">Brad</button>
+      <button class="nav-tab team-tab" onclick="switchTab('team_Thad')">Thad</button>
+      <button class="nav-tab team-tab" onclick="switchTab('team_Judd')">Judd</button>
+      <button class="nav-tab team-tab" onclick="switchTab('team_Mike')">Mike</button>
+      <button class="nav-tab team-tab" onclick="switchTab('team_Luke')">Luke</button>
+      <button class="nav-tab team-tab" onclick="switchTab('team_Alex')">Alex</button>
+      <button class="nav-tab team-tab" onclick="switchTab('team_Tom')">Tom</button>
+      <button class="nav-tab team-tab" onclick="switchTab('team_Gary')">Gary</button>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+<div class="flash" id="flash"></div>
+
+<!-- ══════════════════ DRAFT BOARD ══════════════════ -->
+<div class="panel active" id="panel-draft">
+  <div class="card">
+    <div class="card-title" style="color:#7dd3fc">🎯 Live Draft Board — Select players from each dropdown as the draft happens</div>
+    <div class="hint">Each cell has a dropdown filtered by position slot. Picks save automatically. Use <strong style="color:#7dd3fc">Reset Draft</strong> to start over.</div>
+    <div class="btn-row">
+      <button class="btn btn-danger" onclick="resetDraft()">Reset Draft</button>
+      <button class="btn btn-ghost" onclick="exportDraft()">Export Picks</button>
+    </div>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div class="draft-scroll">
+      <table class="draft-table" id="draftTable"></table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ ROUND ORDER ══════════════════ -->
+<div class="panel" id="panel-standings">
+  <div class="card" style="margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <div>
+      <div style="font-size:12px;font-weight:700;color:#e2e8f0">League Standings</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px">11-1 Roto · Ties split evenly · Updates from MLB Stats API</div>
+    </div>
+    <button class="refresh-btn" onclick="refreshAllTeams()" id="refresh_all_btn">🔄 Refresh All Teams</button>
+  </div>
+  <div class="standings-wrap">
+    <div class="s-hdr s-cols" id="standingsHdr"></div>
+    <div id="standingsBody"></div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════ CATEGORIES ══════════════════ -->
+<div class="panel" id="panel-cats">
+  <div class="cats-grid" id="catsGrid"></div>
+</div>
+
+<!-- ══════════════════ STAT LOOKUP ══════════════════ -->
+<div class="panel" id="panel-lookup">
+  <div class="card">
+    <div class="card-title" style="color:#7dd3fc">🔍 Live MLB Player Stat Lookup</div>
+    <div class="hint">Search any player by name to pull their current 2026 season stats live from the MLB Stats API. Use this to manually update your team stat totals.</div>
+
+    <div class="lookup-type-tabs">
+      <button class="lookup-type-btn active" onclick="setLookupType('hitting')">⚾ Hitting</button>
+      <button class="lookup-type-btn" onclick="setLookupType('pitching')">⚡ Pitching</button>
+    </div>
+
+    <div class="lookup-search-row">
+      <input class="lookup-input" id="lookupInput" type="text" placeholder="Search player name (e.g. Shohei Ohtani)..." oninput="onLookupInput(this.value)" autocomplete="off">
+      <button class="btn btn-green" onclick="doLookup()">Search</button>
+      <button class="btn btn-ghost" onclick="clearLookup()">Clear</button>
+    </div>
+
+    <div id="lookupSuggestions" style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap;"></div>
+  </div>
+
+  <div class="lookup-results" id="lookupResults" style="display:none">
+    <div id="lookupBody"></div>
+  </div>
+
+  <div class="card" style="margin-top:0">
+    <div class="card-title" style="color:#a78bfa">📋 How to use</div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.5);line-height:1.8">
+      1. Search a player by name to see their live 2026 stats<br>
+      2. Tap "Pull Stats from MLB API" on each team's tab to load stats automatically<br>
+      3. RBI, SB, BB etc.<br>
+      4. For pitching: sum W, SV, K, INN — and calculate ERA = (ER × 9) ÷ IP<br>
+      <br>
+      <strong style="color:#7dd3fc">Tip:</strong> The MLB Stats API is free and public — stats update daily during the season.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ TREASURER ══════════════════ -->
+<div class="panel" id="panel-treasurer">
+  <div class="card" style="margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-size:16px;font-weight:800;color:#fbbf24">💰 League Treasurer</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px">$50 buy-in per manager · $1 per roster move</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11px;color:rgba(255,255,255,0.4)">Total Pool</div>
+        <div id="totalPool" style="font-size:28px;font-weight:800;color:#4ade80">$0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div id="treasurerSummary" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:14px"></div>
+
+  <!-- Detail Table -->
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="padding:10px 14px;background:rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:space-between">
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:0.08em;text-transform:uppercase">Manager Ledger</div>
+      <button onclick="resetMoves()" style="padding:4px 10px;border-radius:6px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:rgba(239,68,68,0.7);font-size:11px;cursor:pointer">Reset All Moves</button>
+    </div>
+    <div id="treasurerTable"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ TEAM PANELS ══════════════════ -->
+<div class="panel" id="panel-team_Tyson">
+  <div class="card" style="margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+      <div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase">Fantasy Roster</div>
+        <div style="font-size:22px;font-weight:800;color:#e2e8f0">Tyson</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div id="pts_Tyson" style="text-align:right"></div>
+        <button class="refresh-btn" id="fetch_btn_Tyson" onclick="fetchTeamStats('Tyson')">🔄 Pull Stats from MLB API</button>
+      </div>
+    </div>
+    <div class="team-stat-row" id="stats_Tyson"></div>
+  </div>
+  <div id="roster_Tyson"></div>
+</div>
+<div class="panel" id="panel-team_Rocco">
+  <div class="card" style="margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+      <div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase">Fantasy Roster</div>
+        <div style="font-size:22px;font-weight:800;color:#e2e8f0">Rocco</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div id="pts_Rocco" style="text-align:right"></div>
+        <button class="refresh-btn" id="fetch_btn_Rocco" onclick="fetchTeamStats('Rocco')">🔄 Pull Stats from MLB API</button>
+      </div>
+    </div>
+    <div class="team-stat-row" id="stats_Rocco"></div>
+  </div>
+  <div id="roster_Rocco"></div>
+</div>
+<div class="panel" id="panel-team_Jim">
+  <div class="card" style="margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+      <div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase">Fantasy Roster</div>
+        <div style="font-size:22px;font-weight:800;color:#e2e8f0">Jim</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div id="pts_Jim" style="text-align:right"></div>
+        <button class="refresh-btn" id="fetch_btn_Jim" onclick="fetchTeamStats('Jim')">🔄 Pull Stats from MLB API</button>
+      </div>
+    </div>
+    <div class="team-stat-row" id="stats_Jim"></div>
+  </div>
+  <div id="roster_Jim"></div>
+</div>
+<div class="panel" id="panel-team_Brad">
+  <div class="card" style="margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+      <div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase">Fantasy Roster</div>
+        <div style="font-size:22px;font-weight:800;color:#e2e8f0">Brad</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div id="pts_Brad" style="text-align:right"></div>
+        <button class="refresh-btn" id="fetch_btn_Brad" onclick="fetchTeamStats('Brad')">🔄 Pull Stats from MLB API</button>
+      </div>
+    </div>
+    <div class="team-stat-row" id="stats_Brad"></div>
+  </div>
+  <div id="roster_Brad"></div>
+</div>
+<div class="panel" id="panel-team_Thad">
+  <div class="card" style="margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+      <div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase">Fantasy Roster</div>
+        <div style="font-size:22px;font-weight:800;color:#e2e8f0">Thad</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div id="pts_Thad" style="text-align:right"></div>
+        <button class="refresh-btn" id="fetch_btn_Thad" onclick="fetchTeamStats('Thad')">🔄 Pull Stats from MLB API</button>
+      </div>
+    </div>
+    <div class="team-stat-row" id="stats_Thad"></div>
+  </div>
+  <div id="roster_Thad"></div>
+</div>
+<div class="panel" id="panel-team_Judd">
+  <div class="card" style="margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+      <div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase">Fantasy Roster</div>
+        <div style="font-size:22px;font-weight:800;color:#e2e8f0">Judd</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div id="pts_Judd" style="text-align:right"></div>
+        <button class="refresh-btn" id="fetch_btn_Judd" onclick="fetchTeamStats('Judd')">🔄 Pull Stats from MLB API</button>
+      </div>
+    </div>
+    <div class="team-stat-row" id="stats_Judd"></div>
+  </div>
+  <div id="roster_Judd"></div>
+</div>
+<div class="panel" id="panel-team_Mike">
+  <div class="card" style="margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+      <div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase">Fantasy Roster</div>
+        <div style="font-size:22px;font-weight:800;color:#e2e8f0">Mike</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div id="pts_Mike" style="text-align:right"></div>
+        <button class="refresh-btn" id="fetch_btn_Mike" onclick="fetchTeamStats('Mike')">🔄 Pull Stats from MLB API</button>
+      </div>
+    </div>
+    <div class="team-stat-row" id="stats_Mike"></div>
+  </div>
+  <div id="roster_Mike"></div>
+</div>
+<div class="panel" id="panel-team_Luke">
+  <div class="card" style="margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+      <div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase">Fantasy Roster</div>
+        <div style="font-size:22px;font-weight:800;color:#e2e8f0">Luke</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div id="pts_Luke" style="text-align:right"></div>
+        <button class="refresh-btn" id="fetch_btn_Luke" onclick="fetchTeamStats('Luke')">🔄 Pull Stats from MLB API</button>
+      </div>
+    </div>
+    <div class="team-stat-row" id="stats_Luke"></div>
+  </div>
+  <div id="roster_Luke"></div>
+</div>
+<div class="panel" id="panel-team_Alex">
+  <div class="card" style="margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+      <div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase">Fantasy Roster</div>
+        <div style="font-size:22px;font-weight:800;color:#e2e8f0">Alex</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div id="pts_Alex" style="text-align:right"></div>
+        <button class="refresh-btn" id="fetch_btn_Alex" onclick="fetchTeamStats('Alex')">🔄 Pull Stats from MLB API</button>
+      </div>
+    </div>
+    <div class="team-stat-row" id="stats_Alex"></div>
+  </div>
+  <div id="roster_Alex"></div>
+</div>
+<div class="panel" id="panel-team_Tom">
+  <div class="card" style="margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+      <div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase">Fantasy Roster</div>
+        <div style="font-size:22px;font-weight:800;color:#e2e8f0">Tom</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div id="pts_Tom" style="text-align:right"></div>
+        <button class="refresh-btn" id="fetch_btn_Tom" onclick="fetchTeamStats('Tom')">🔄 Pull Stats from MLB API</button>
+      </div>
+    </div>
+    <div class="team-stat-row" id="stats_Tom"></div>
+  </div>
+  <div id="roster_Tom"></div>
+</div>
+<div class="panel" id="panel-team_Gary">
+  <div class="card" style="margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+      <div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase">Fantasy Roster</div>
+        <div style="font-size:22px;font-weight:800;color:#e2e8f0">Gary</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div id="pts_Gary" style="text-align:right"></div>
+        <button class="refresh-btn" id="fetch_btn_Gary" onclick="fetchTeamStats('Gary')">🔄 Pull Stats from MLB API</button>
+      </div>
+    </div>
+    <div class="team-stat-row" id="stats_Gary"></div>
+  </div>
+  <div id="roster_Gary"></div>
+</div>
+
+
+<div class="footer">Auto-saves in browser · 6×6 Roto: ERA ranked ascending · Max 132 pts · Draft picks & stats both saved</div>
+</div><!-- /content -->
+
+<script>
+const PLAYER_LISTS = {"C": ["-- Catcher --", "William Contreras (MIL)", "Cal Raleigh (SEA)", "Ben Rice (NYY)", "Shea Langeliers (ATH)", "Adley Rutschman (BAL)", "Will Smith (LAD)", "Hunter Goodman (COL)", "Salvador Perez (KC)", "Drake Baldwin (ATL)", "J.T. Realmuto (PHI)", "Alejandro Kirk (TOR)", "Francisco Alvarez (NYM)", "Yainer Díaz (HOU)", "Austin Wells (NYY)", "Daulton Varsho (TOR)", "Iván Herrera (STL)", "Logan O'Hoppe (LAA)", "Gabriel Moreno (ARI)", "Kyle Teel (CWS)", "Samuel Basallo (BAL)", "Ryan Jeffers (MIN)", "Carter Jensen (KC)", "Agustín Ramírez (MIA)", "Dillon Dingler (DET)", "Tyler Stephenson (CIN)", "Patrick Bailey (SF)", "Elias Díaz (COL)", "Endy Rodríguez (PIT)", "José Trevino (NYY)", "Tom Murphy (SEA)", "Austin Hedges (CLE)", "Christian Vázquez (MIN)", "Blake Sabol (SF)", "Sean Murphy (ATL)", "Bo Naylor (CLE)", "Jonah Heim (TEX)", "Danny Jansen (BOS)", "Korey Lee (CWS)", "Brian Serven (COL)", "Jose Godoy (STL)"], "1B": ["-- First Base --", "Vladimir Guerrero Jr. (TOR)", "Freddie Freeman (LAD)", "Bryce Harper (PHI)", "Pete Alonso (BAL)", "Matt Olson (ATL)", "Nick Kurtz (ATH)", "Rafael Devers (SF)", "Vinnie Pasquantino (KC)", "Nathaniel Lowe (WAS)", "Josh Naylor (SEA)", "Michael Busch (CHC)", "Tyler Soderstrom (ATH)", "Jorge Polanco (NYM)", "Jake Cronenworth (SD)", "Jonathan Aranda (TB)", "Yandy Díaz (TB)", "Spencer Torkelson (DET)", "Alec Burleson (STL)", "Ryan O'Hearn (PIT)", "Kyle Manzardo (CLE)", "Christian Walker (HOU)", "Andrew Vaughn (MIL)", "Jac Caglianone (KC)", "Sal Stewart (CIN)", "Rowdy Tellez (MIL)", "Triston Casas (BOS)", "Matt Mervis (CHC)", "Michael Toglia (COL)", "Paul Goldschmidt (NYY)", "Evan White (SEA)", "Rhys Hoskins (MIL)", "Austin Riley (ATL)", "Ji Man Choi (PIT)", "Gavin Sheets (CWS)", "Dominic Smith (WAS)", "Andrew Knizner (STL)", "Joey Votto (CIN)", "Luke Voit (SD)", "Josh Bell (CLE)", "Carlos Santana (PIT)"], "2B": ["-- Second Base --", "Nico Hoerner (CHC)", "Ketel Marte (ARI)", "Jazz Chisholm Jr. (NYY)", "Jose Altuve (HOU)", "Jackson Holliday (BAL)", "Brice Turang (MIL)", "Ozzie Albies (ATL)", "Brandon Lowe (PIT)", "Bryson Stott (PHI)", "Jonathan India (CIN)", "Brendan Donovan (SEA)", "Xavier Edwards (MIA)", "Ceddanne Rafaela (BOS)", "Gleyber Torres (DET)", "Marcus Semien (NYM)", "Colt Keith (DET)", "Otto López (MIA)", "Maikel García (KC)", "Luke Keaschall (MIN)", "Jorge Polanco (NYM)", "Jake Cronenworth (SD)", "JJ Wetherholt (STL)", "Termarr Johnson (PIT)", "Edouard Julien (MIN)", "Brendan Rodgers (COL)", "Luis Arraez (SF)", "Michael Massey (KC)", "Zack Gelof (ATH)", "Tommy Edman (LAD)", "Enmanuel Valdez (BOS)", "Chris Morel (TB)", "Kolten Wong (SEA)", "Whit Merrifield (PHI)", "Nick Gordon (MIA)", "Gavin Lux (LAD)", "Nick Ahmed (SF)", "Adam Frazier (BAL)", "Joey Wiemer (MIL)", "Ha-Seong Kim (SD)", "Andres Gimenez (CLE)"], "3B": ["-- Third Base --", "José Ramírez (CLE)", "Junior Caminero (TB)", "Alex Bregman (CHC)", "Manny Machado (SD)", "Jazz Chisholm Jr. (NYY)", "Isaac Paredes (HOU)", "Austin Riley (ATL)", "Maikel García (KC)", "Matt Chapman (SF)", "Bo Bichette (NYM)", "Rafael Devers (SF)", "Carlos Correa (HOU)", "Alec Bohm (DET)", "Brett Baty (NYM)", "Royce Lewis (MIN)", "Nolan Arenado (ARI)", "Ryan McMahon (COL)", "Addison Barger (TOR)", "Noelvi Marte (CIN)", "Josh Jung (TEX)", "Eugenio Suárez (CIN)", "Ke'Bryan Hayes (PIT)", "Jordan Walker (STL)", "Spencer Steer (CIN)", "Max Muncy (LAD)", "Yoán Moncada (LAA)", "Patrick Wisdom (CHC)", "Jake Burger (MIA)", "José Miranda (MIN)", "Yandy Díaz (TB)", "Ernie Clement (TOR)", "Emmanuel Rivera (MIA)", "Ryan Mountcastle (BAL)", "Daulton Varsho (TOR)", "DJ LeMahieu (NYY)", "Jeimer Candelario (CIN)", "Gio Urshela (DET)", "Jace Peterson (MIL)", "Cavan Biggio (TOR)", "Christopher Morel (TB)"], "SS": ["-- Shortstop --", "Bobby Witt Jr. (KC)", "Mookie Betts (LAD)", "Elly De La Cruz (CIN)", "Gunnar Henderson (BAL)", "Trea Turner (PHI)", "Francisco Lindor (NYM)", "Zach Neto (LAA)", "Corey Seager (TEX)", "Geraldo Perdomo (ARI)", "Bo Bichette (NYM)", "CJ Abrams (WAS)", "Oneil Cruz (PIT)", "Ha-Seong Kim (SD)", "Matt McLain (CIN)", "Jeremy Peña (HOU)", "Masyn Winn (STL)", "Royce Lewis (MIN)", "Carlos Correa (HOU)", "Ernie Clement (TOR)", "Konnor Griffin (PIT)", "Jordan Lawlar (ARI)", "Willy Adames (SF)", "Tommy Edman (LAD)", "Brooks Lee (MIN)", "JP Crawford (SEA)", "Orlando Arcia (ATL)", "Dansby Swanson (CHC)", "Xander Bogaerts (SD)", "Jose Barrero (CIN)", "Nick Allen (ATH)", "Paul DeJong (SF)", "Kevin McGonigle (DET)", "Zach McKinstry (SF)", "Marco Hernández (BOS)", "Tim Anderson (MIA)", "Amed Rosario (LAD)", "Xavier Edwards (MIA)", "Nick Ahmed (SF)", "Tyler Freeman (CLE)", "Bryson Stott (PHI)"], "OF": ["-- Outfielder --", "Shohei Ohtani (LAD)", "Aaron Judge (NYY)", "Juan Soto (NYM)", "Ronald Acuña Jr. (ATL)", "Julio Rodríguez (SEA)", "Kyle Tucker (LAD)", "Fernando Tatis Jr. (SD)", "Corbin Carroll (ARI)", "Jackson Chourio (MIL)", "James Wood (WAS)", "Roman Anthony (BOS)", "Yordan Alvarez (HOU)", "Pete Crow-Armstrong (CHC)", "Kyle Schwarber (PHI)", "Wyatt Langford (TEX)", "Brent Rooker (ATH)", "Jackson Merrill (SD)", "Cody Bellinger (NYY)", "Jarren Duran (BOS)", "Riley Greene (DET)", "Randy Arozarena (SEA)", "Byron Buxton (MIN)", "Michael Harris II (ATL)", "Seiya Suzuki (CHC)", "George Springer (TOR)", "Teoscar Hernández (LAD)", "Christian Yelich (MIL)", "Steven Kwan (CLE)", "Bryan Reynolds (PIT)", "Jo Adell (LAA)", "Taylor Ward (BAL)", "Luis Robert Jr. (NYM)", "Lawrence Butler (ATH)", "Dylan Crews (WAS)", "Chandler Simpson (TB)", "Kerry Carpenter (DET)", "Kyle Stowers (MIA)", "Brandon Nimmo (TEX)", "Sal Frelick (MIL)", "Heliot Ramos (SF)", "Noelvi Marte (CIN)", "Addison Barger (TOR)", "Michael Conforto (SF)", "Jorge Soler (MIA)", "Lourdes Gurriel Jr. (ARI)", "Mitch Haniger (SEA)", "Alex Verdugo (NYY)", "Tyler O'Neill (BOS)", "Giancarlo Stanton (NYY)", "Marcell Ozuna (PIT)", "Ian Happ (CHC)", "Nick Castellanos (PHI)", "Masataka Yoshida (BOS)", "Tommy Pham (ARI)", "Mike Yastrzemski (SF)", "Jake McCarthy (ARI)", "Lars Nootbaar (STL)", "Lane Thomas (WAS)", "Jesse Winker (WAS)", "Daz Cameron (DET)", "Trent Grisham (NYY)", "Eddie Rosario (ATL)", "Alex Kirilloff (MIN)", "Austin Slater (SF)", "Hunter Renfroe (LAA)", "Manuel Margot (MIN)", "AJ Pollock (SEA)", "Robbie Grossman (TEX)", "Brett Phillips (TB)", "Trayce Thompson (LAD)", "Garrett Mitchell (MIL)", "Jake Fraley (CIN)", "Michael Brantley (HOU)", "Jurickson Profar (COL)", "Charlie Blackmon (COL)", "Chas McCormick (HOU)", "Oscar Colas (CWS)", "Estevan Florial (CLE)", "TJ Friedl (CIN)", "Jackson Stephens (CIN)", "Akil Baddoo (DET)", "Kevin Kiermaier (TOR)", "Leody Taveras (TEX)", "David Peralta (LAD)", "Ben Gamel (PIT)", "Adam Duvall (BOS)", "JD Martinez (NYM)", "Mark Canha (DET)"], "P": ["-- Pitcher --", "Tarik Skubal (DET) SP", "Paul Skenes (PIT) SP", "Garrett Crochet (BOS) SP", "Yoshinobu Yamamoto (LAD) SP", "Logan Webb (SF) SP", "Cristopher Sánchez (PHI) SP", "Luis Castillo (SEA) SP", "Logan Gilbert (SEA) SP", "Hunter Brown (HOU) SP", "Max Fried (NYY) SP", "Bryan Woo (SEA) SP", "Framber Valdez (DET) SP", "Joe Ryan (MIN) SP", "George Kirby (SEA) SP", "Kevin Gausman (TOR) SP", "Ranger Suárez (BOS) SP", "Cole Ragans (KC) SP", "Dylan Cease (TOR) SP", "Chris Sale (ATL) SP", "Freddy Peralta (NYM) SP", "Nick Pivetta (SD) SP", "Trevor Rogers (BAL) SP", "Zac Gallen (ARI) SP", "Michael King (SD) SP", "Sonny Gray (BOS) SP", "Jacob deGrom (TEX) SP", "Chase Burns (CIN) SP", "Eury Pérez (MIA) SP", "Kyle Bradish (BAL) SP", "Spencer Strider (ATL) SP", "Gerrit Cole (NYY) SP", "Jesús Luzardo (PHI) SP", "Sandy Alcantara (MIA) SP", "Tanner Bibee (CLE) SP", "Nick Lodolo (CIN) SP", "Robbie Ray (SF) SP", "Ryan Pepiot (TB) SP", "Nathan Eovaldi (TEX) SP", "Nolan McLean (NYM) SP", "Tyler Glasnow (LAD) SP", "Cade Horton (CHC) SP", "Andrew Abbott (CIN) SP", "Gavin Williams (CLE) SP", "MacKenzie Gore (TEX) SP", "Braxton Garrett (MIA) SP", "Shane Bieber (CLE) SP", "Max Meyer (MIA) SP", "Reid Detmers (LAA) SP", "Josiah Gray (WAS) SP", "Kyle Gibson (STL) SP", "Jordan Montgomery (ARI) SP", "Zack Wheeler (PHI) SP", "Blake Snell (LAD) SP", "Pablo López (MIN) SP", "Merrill Kelly (ARI) SP", "Lance Lynn (STL) SP", "Patrick Corbin (WAS) SP", "Martín Pérez (PIT) SP", "Dane Dunning (TEX) SP", "Aaron Nola (PHI) SP", "Yusei Kikuchi (TOR) SP", "Bailey Ober (MIN) SP", "George Kirby (SEA) SP", "Michael Kopech (SF) SP", "Justin Steele (CHC) SP", "Kodai Senga (NYM) SP", "Taj Bradley (TB) SP", "Bryce Miller (SEA) SP", "Clarke Schmidt (NYY) SP", "Dean Kremer (BAL) SP", "Griffin Canning (LAA) SP", "Simeon Woods Richardson (MIN) SP", "Mitchell Parker (WAS) SP", "Reese Olson (DET) SP", "Emmett Sheehan (LAD) SP", "JP Sears (ATH) SP", "Carlos Rodón (NYY) SP", "Tobias Myers (MIL) SP", "Mason Miller (SD) RP", "Edwin Díaz (LAD) RP", "Andrés Muñoz (SEA) RP", "Jhoan Durán (PHI) RP", "Cade Smith (CLE) RP", "Pete Fairbanks (TB) RP", "Emmanuel Clase (CLE) RP", "Josh Hader (HOU) RP", "Ryan Helsley (STL) RP", "Devin Williams (NYY) RP", "Tanner Scott (LAD) RP", "Clay Holmes (NYM) RP", "David Bednar (NYY) RP", "Camilo Doval (SF) RP", "Robert Suarez (SD) RP", "AJ Minter (ATL) RP", "Alexis Díaz (CIN) RP", "Jordan Romano (BOS) RP", "Justin Martinez (ARI) RP", "Aroldis Chapman (BOS) RP", "Ryan Pressly (HOU) RP", "Evan Phillips (LAD) RP", "Yerry De Los Santos (ATH) RP", "Kenley Jansen (BOS) RP", "Scott Barlow (SD) RP", "Kendall Graveman (CHC) RP", "Greg Weissert (NYY) RP", "Luke Weaver (NYY) RP", "A.J. Puk (MIA) RP", "Brusdar Graterol (LAD) RP", "Mark Melancon (ARI) RP", "Pete Fairbanks (TB) RP", "Ryan Walker (SF) RP", "Yimi García (TOR) RP", "Daniel Hudson (LAD) RP", "James Karinchak (CLE) RP", "Pierce Johnson (COL) RP", "Joe Kelly (LAD) RP", "Jorge López (MIN) RP", "Ian Kennedy (TEX) RP", "Chris Stratton (PIT) RP", "Tyler Kinley (COL) RP", "Joel Payamps (MIL) RP", "Ty Tice (TOR) RP", "Nick Anderson (ATL) RP", "Rafael Montero (HOU) RP", "Seranthony Domínguez (PHI) RP", "Michael Fulmer (CHC) RP", "Jonathan Loáisiga (NYY) RP", "Lou Trivino (NYY) RP", "Jason Adam (TB) RP"], "BN": ["-- Any Position --", "William Contreras (MIL) [C]", "Cal Raleigh (SEA) [C]", "Ben Rice (NYY) [C]", "Shea Langeliers (ATH) [C]", "Adley Rutschman (BAL) [C]", "Will Smith (LAD) [C]", "Hunter Goodman (COL) [C]", "Salvador Perez (KC) [C]", "Drake Baldwin (ATL) [C]", "J.T. Realmuto (PHI) [C]", "Alejandro Kirk (TOR) [C]", "Francisco Alvarez (NYM) [C]", "Yainer Díaz (HOU) [C]", "Austin Wells (NYY) [C]", "Daulton Varsho (TOR) [C]", "Iván Herrera (STL) [C]", "Logan O'Hoppe (LAA) [C]", "Gabriel Moreno (ARI) [C]", "Kyle Teel (CWS) [C]", "Samuel Basallo (BAL) [C]", "Ryan Jeffers (MIN) [C]", "Carter Jensen (KC) [C]", "Agustín Ramírez (MIA) [C]", "Dillon Dingler (DET) [C]", "Tyler Stephenson (CIN) [C]", "Patrick Bailey (SF) [C]", "Elias Díaz (COL) [C]", "Endy Rodríguez (PIT) [C]", "José Trevino (NYY) [C]", "Tom Murphy (SEA) [C]", "Austin Hedges (CLE) [C]", "Christian Vázquez (MIN) [C]", "Blake Sabol (SF) [C]", "Sean Murphy (ATL) [C]", "Bo Naylor (CLE) [C]", "Jonah Heim (TEX) [C]", "Danny Jansen (BOS) [C]", "Korey Lee (CWS) [C]", "Brian Serven (COL) [C]", "Jose Godoy (STL) [C]", "Vladimir Guerrero Jr. (TOR) [1B]", "Freddie Freeman (LAD) [1B]", "Bryce Harper (PHI) [1B]", "Pete Alonso (BAL) [1B]", "Matt Olson (ATL) [1B]", "Nick Kurtz (ATH) [1B]", "Rafael Devers (SF) [1B]", "Vinnie Pasquantino (KC) [1B]", "Nathaniel Lowe (WAS) [1B]", "Josh Naylor (SEA) [1B]", "Michael Busch (CHC) [1B]", "Tyler Soderstrom (ATH) [1B]", "Jorge Polanco (NYM) [1B]", "Jake Cronenworth (SD) [1B]", "Jonathan Aranda (TB) [1B]", "Yandy Díaz (TB) [1B]", "Spencer Torkelson (DET) [1B]", "Alec Burleson (STL) [1B]", "Ryan O'Hearn (PIT) [1B]", "Kyle Manzardo (CLE) [1B]", "Christian Walker (HOU) [1B]", "Andrew Vaughn (MIL) [1B]", "Jac Caglianone (KC) [1B]", "Sal Stewart (CIN) [1B]", "Rowdy Tellez (MIL) [1B]", "Triston Casas (BOS) [1B]", "Matt Mervis (CHC) [1B]", "Michael Toglia (COL) [1B]", "Paul Goldschmidt (NYY) [1B]", "Evan White (SEA) [1B]", "Rhys Hoskins (MIL) [1B]", "Austin Riley (ATL) [1B]", "Ji Man Choi (PIT) [1B]", "Gavin Sheets (CWS) [1B]", "Dominic Smith (WAS) [1B]", "Andrew Knizner (STL) [1B]", "Joey Votto (CIN) [1B]", "Luke Voit (SD) [1B]", "Josh Bell (CLE) [1B]", "Carlos Santana (PIT) [1B]", "Nico Hoerner (CHC) [2B]", "Ketel Marte (ARI) [2B]", "Jazz Chisholm Jr. (NYY) [2B]", "Jose Altuve (HOU) [2B]", "Jackson Holliday (BAL) [2B]", "Brice Turang (MIL) [2B]", "Ozzie Albies (ATL) [2B]", "Brandon Lowe (PIT) [2B]", "Bryson Stott (PHI) [2B]", "Jonathan India (CIN) [2B]", "Brendan Donovan (SEA) [2B]", "Xavier Edwards (MIA) [2B]", "Ceddanne Rafaela (BOS) [2B]", "Gleyber Torres (DET) [2B]", "Marcus Semien (NYM) [2B]", "Colt Keith (DET) [2B]", "Otto López (MIA) [2B]", "Maikel García (KC) [2B]", "Luke Keaschall (MIN) [2B]", "Jorge Polanco (NYM) [2B]", "Jake Cronenworth (SD) [2B]", "JJ Wetherholt (STL) [2B]", "Termarr Johnson (PIT) [2B]", "Edouard Julien (MIN) [2B]", "Brendan Rodgers (COL) [2B]", "Luis Arraez (SF) [2B]", "Michael Massey (KC) [2B]", "Zack Gelof (ATH) [2B]", "Tommy Edman (LAD) [2B]", "Enmanuel Valdez (BOS) [2B]", "Chris Morel (TB) [2B]", "Kolten Wong (SEA) [2B]", "Whit Merrifield (PHI) [2B]", "Nick Gordon (MIA) [2B]", "Gavin Lux (LAD) [2B]", "Nick Ahmed (SF) [2B]", "Adam Frazier (BAL) [2B]", "Joey Wiemer (MIL) [2B]", "Ha-Seong Kim (SD) [2B]", "Andres Gimenez (CLE) [2B]", "José Ramírez (CLE) [3B]", "Junior Caminero (TB) [3B]", "Alex Bregman (CHC) [3B]", "Manny Machado (SD) [3B]", "Jazz Chisholm Jr. (NYY) [3B]", "Isaac Paredes (HOU) [3B]", "Austin Riley (ATL) [3B]", "Maikel García (KC) [3B]", "Matt Chapman (SF) [3B]", "Bo Bichette (NYM) [3B]", "Rafael Devers (SF) [3B]", "Carlos Correa (HOU) [3B]", "Alec Bohm (DET) [3B]", "Brett Baty (NYM) [3B]", "Royce Lewis (MIN) [3B]", "Nolan Arenado (ARI) [3B]", "Ryan McMahon (COL) [3B]", "Addison Barger (TOR) [3B]", "Noelvi Marte (CIN) [3B]", "Josh Jung (TEX) [3B]", "Eugenio Suárez (CIN) [3B]", "Ke'Bryan Hayes (PIT) [3B]", "Jordan Walker (STL) [3B]", "Spencer Steer (CIN) [3B]", "Max Muncy (LAD) [3B]", "Yoán Moncada (LAA) [3B]", "Patrick Wisdom (CHC) [3B]", "Jake Burger (MIA) [3B]", "José Miranda (MIN) [3B]", "Yandy Díaz (TB) [3B]", "Ernie Clement (TOR) [3B]", "Emmanuel Rivera (MIA) [3B]", "Ryan Mountcastle (BAL) [3B]", "Daulton Varsho (TOR) [3B]", "DJ LeMahieu (NYY) [3B]", "Jeimer Candelario (CIN) [3B]", "Gio Urshela (DET) [3B]", "Jace Peterson (MIL) [3B]", "Cavan Biggio (TOR) [3B]", "Christopher Morel (TB) [3B]", "Bobby Witt Jr. (KC) [SS]", "Mookie Betts (LAD) [SS]", "Elly De La Cruz (CIN) [SS]", "Gunnar Henderson (BAL) [SS]", "Trea Turner (PHI) [SS]", "Francisco Lindor (NYM) [SS]", "Zach Neto (LAA) [SS]", "Corey Seager (TEX) [SS]", "Geraldo Perdomo (ARI) [SS]", "Bo Bichette (NYM) [SS]", "CJ Abrams (WAS) [SS]", "Oneil Cruz (PIT) [SS]", "Ha-Seong Kim (SD) [SS]", "Matt McLain (CIN) [SS]", "Jeremy Peña (HOU) [SS]", "Masyn Winn (STL) [SS]", "Royce Lewis (MIN) [SS]", "Carlos Correa (HOU) [SS]", "Ernie Clement (TOR) [SS]", "Konnor Griffin (PIT) [SS]", "Jordan Lawlar (ARI) [SS]", "Willy Adames (SF) [SS]", "Tommy Edman (LAD) [SS]", "Brooks Lee (MIN) [SS]", "JP Crawford (SEA) [SS]", "Orlando Arcia (ATL) [SS]", "Dansby Swanson (CHC) [SS]", "Xander Bogaerts (SD) [SS]", "Jose Barrero (CIN) [SS]", "Nick Allen (ATH) [SS]", "Paul DeJong (SF) [SS]", "Kevin McGonigle (DET) [SS]", "Zach McKinstry (SF) [SS]", "Marco Hernández (BOS) [SS]", "Tim Anderson (MIA) [SS]", "Amed Rosario (LAD) [SS]", "Xavier Edwards (MIA) [SS]", "Nick Ahmed (SF) [SS]", "Tyler Freeman (CLE) [SS]", "Bryson Stott (PHI) [SS]", "Shohei Ohtani (LAD) [OF]", "Aaron Judge (NYY) [OF]", "Juan Soto (NYM) [OF]", "Ronald Acuña Jr. (ATL) [OF]", "Julio Rodríguez (SEA) [OF]", "Kyle Tucker (LAD) [OF]", "Fernando Tatis Jr. (SD) [OF]", "Corbin Carroll (ARI) [OF]", "Jackson Chourio (MIL) [OF]", "James Wood (WAS) [OF]", "Roman Anthony (BOS) [OF]", "Yordan Alvarez (HOU) [OF]", "Pete Crow-Armstrong (CHC) [OF]", "Kyle Schwarber (PHI) [OF]", "Wyatt Langford (TEX) [OF]", "Brent Rooker (ATH) [OF]", "Jackson Merrill (SD) [OF]", "Cody Bellinger (NYY) [OF]", "Jarren Duran (BOS) [OF]", "Riley Greene (DET) [OF]", "Randy Arozarena (SEA) [OF]", "Byron Buxton (MIN) [OF]", "Michael Harris II (ATL) [OF]", "Seiya Suzuki (CHC) [OF]", "George Springer (TOR) [OF]", "Teoscar Hernández (LAD) [OF]", "Christian Yelich (MIL) [OF]", "Steven Kwan (CLE) [OF]", "Bryan Reynolds (PIT) [OF]", "Jo Adell (LAA) [OF]", "Taylor Ward (BAL) [OF]", "Luis Robert Jr. (NYM) [OF]", "Lawrence Butler (ATH) [OF]", "Dylan Crews (WAS) [OF]", "Chandler Simpson (TB) [OF]", "Kerry Carpenter (DET) [OF]", "Kyle Stowers (MIA) [OF]", "Brandon Nimmo (TEX) [OF]", "Sal Frelick (MIL) [OF]", "Heliot Ramos (SF) [OF]", "Noelvi Marte (CIN) [OF]", "Addison Barger (TOR) [OF]", "Michael Conforto (SF) [OF]", "Jorge Soler (MIA) [OF]", "Lourdes Gurriel Jr. (ARI) [OF]", "Mitch Haniger (SEA) [OF]", "Alex Verdugo (NYY) [OF]", "Tyler O'Neill (BOS) [OF]", "Giancarlo Stanton (NYY) [OF]", "Marcell Ozuna (PIT) [OF]", "Ian Happ (CHC) [OF]", "Nick Castellanos (PHI) [OF]", "Masataka Yoshida (BOS) [OF]", "Tommy Pham (ARI) [OF]", "Mike Yastrzemski (SF) [OF]", "Jake McCarthy (ARI) [OF]", "Lars Nootbaar (STL) [OF]", "Lane Thomas (WAS) [OF]", "Jesse Winker (WAS) [OF]", "Daz Cameron (DET) [OF]", "Trent Grisham (NYY) [OF]", "Eddie Rosario (ATL) [OF]", "Alex Kirilloff (MIN) [OF]", "Austin Slater (SF) [OF]", "Hunter Renfroe (LAA) [OF]", "Manuel Margot (MIN) [OF]", "AJ Pollock (SEA) [OF]", "Robbie Grossman (TEX) [OF]", "Brett Phillips (TB) [OF]", "Trayce Thompson (LAD) [OF]", "Garrett Mitchell (MIL) [OF]", "Jake Fraley (CIN) [OF]", "Michael Brantley (HOU) [OF]", "Jurickson Profar (COL) [OF]", "Charlie Blackmon (COL) [OF]", "Chas McCormick (HOU) [OF]", "Oscar Colas (CWS) [OF]", "Estevan Florial (CLE) [OF]", "TJ Friedl (CIN) [OF]", "Jackson Stephens (CIN) [OF]", "Akil Baddoo (DET) [OF]", "Kevin Kiermaier (TOR) [OF]", "Leody Taveras (TEX) [OF]", "David Peralta (LAD) [OF]", "Ben Gamel (PIT) [OF]", "Adam Duvall (BOS) [OF]", "JD Martinez (NYM) [OF]", "Mark Canha (DET) [OF]", "Tarik Skubal (DET) SP", "Paul Skenes (PIT) SP", "Garrett Crochet (BOS) SP", "Yoshinobu Yamamoto (LAD) SP", "Logan Webb (SF) SP", "Cristopher Sánchez (PHI) SP", "Luis Castillo (SEA) SP", "Logan Gilbert (SEA) SP", "Hunter Brown (HOU) SP", "Max Fried (NYY) SP", "Bryan Woo (SEA) SP", "Framber Valdez (DET) SP", "Joe Ryan (MIN) SP", "George Kirby (SEA) SP", "Kevin Gausman (TOR) SP", "Ranger Suárez (BOS) SP", "Cole Ragans (KC) SP", "Dylan Cease (TOR) SP", "Chris Sale (ATL) SP", "Freddy Peralta (NYM) SP", "Nick Pivetta (SD) SP", "Trevor Rogers (BAL) SP", "Zac Gallen (ARI) SP", "Michael King (SD) SP", "Sonny Gray (BOS) SP", "Jacob deGrom (TEX) SP", "Chase Burns (CIN) SP", "Eury Pérez (MIA) SP", "Kyle Bradish (BAL) SP", "Spencer Strider (ATL) SP", "Gerrit Cole (NYY) SP", "Jesús Luzardo (PHI) SP", "Sandy Alcantara (MIA) SP", "Tanner Bibee (CLE) SP", "Nick Lodolo (CIN) SP", "Robbie Ray (SF) SP", "Ryan Pepiot (TB) SP", "Nathan Eovaldi (TEX) SP", "Nolan McLean (NYM) SP", "Tyler Glasnow (LAD) SP", "Cade Horton (CHC) SP", "Andrew Abbott (CIN) SP", "Gavin Williams (CLE) SP", "MacKenzie Gore (TEX) SP", "Braxton Garrett (MIA) SP", "Shane Bieber (CLE) SP", "Max Meyer (MIA) SP", "Reid Detmers (LAA) SP", "Josiah Gray (WAS) SP", "Kyle Gibson (STL) SP", "Jordan Montgomery (ARI) SP", "Zack Wheeler (PHI) SP", "Blake Snell (LAD) SP", "Pablo López (MIN) SP", "Merrill Kelly (ARI) SP", "Lance Lynn (STL) SP", "Patrick Corbin (WAS) SP", "Martín Pérez (PIT) SP", "Dane Dunning (TEX) SP", "Aaron Nola (PHI) SP", "Yusei Kikuchi (TOR) SP", "Bailey Ober (MIN) SP", "George Kirby (SEA) SP", "Michael Kopech (SF) SP", "Justin Steele (CHC) SP", "Kodai Senga (NYM) SP", "Taj Bradley (TB) SP", "Bryce Miller (SEA) SP", "Clarke Schmidt (NYY) SP", "Dean Kremer (BAL) SP", "Griffin Canning (LAA) SP", "Simeon Woods Richardson (MIN) SP", "Mitchell Parker (WAS) SP", "Reese Olson (DET) SP", "Emmett Sheehan (LAD) SP", "JP Sears (ATH) SP", "Carlos Rodón (NYY) SP", "Tobias Myers (MIL) SP", "Mason Miller (SD) RP", "Edwin Díaz (LAD) RP", "Andrés Muñoz (SEA) RP", "Jhoan Durán (PHI) RP", "Cade Smith (CLE) RP", "Pete Fairbanks (TB) RP", "Emmanuel Clase (CLE) RP", "Josh Hader (HOU) RP", "Ryan Helsley (STL) RP", "Devin Williams (NYY) RP", "Tanner Scott (LAD) RP", "Clay Holmes (NYM) RP", "David Bednar (NYY) RP", "Camilo Doval (SF) RP", "Robert Suarez (SD) RP", "AJ Minter (ATL) RP", "Alexis Díaz (CIN) RP", "Jordan Romano (BOS) RP", "Justin Martinez (ARI) RP", "Aroldis Chapman (BOS) RP", "Ryan Pressly (HOU) RP", "Evan Phillips (LAD) RP", "Yerry De Los Santos (ATH) RP", "Kenley Jansen (BOS) RP", "Scott Barlow (SD) RP", "Kendall Graveman (CHC) RP", "Greg Weissert (NYY) RP", "Luke Weaver (NYY) RP", "A.J. Puk (MIA) RP", "Brusdar Graterol (LAD) RP", "Mark Melancon (ARI) RP", "Pete Fairbanks (TB) RP", "Ryan Walker (SF) RP", "Yimi García (TOR) RP", "Daniel Hudson (LAD) RP", "James Karinchak (CLE) RP", "Pierce Johnson (COL) RP", "Joe Kelly (LAD) RP", "Jorge López (MIN) RP", "Ian Kennedy (TEX) RP", "Chris Stratton (PIT) RP", "Tyler Kinley (COL) RP", "Joel Payamps (MIL) RP", "Ty Tice (TOR) RP", "Nick Anderson (ATL) RP", "Rafael Montero (HOU) RP", "Seranthony Domínguez (PHI) RP", "Michael Fulmer (CHC) RP", "Jonathan Loáisiga (NYY) RP", "Lou Trivino (NYY) RP", "Jason Adam (TB) RP"]};
+
+const TEAMS = ["Tyson","Rocco","Jim","Brad","Thad","Judd","Mike","Luke","Alex","Tom","Gary"];
+const ALL_CATS = ['R', 'HR', 'RBI', 'SB', 'AVG', 'BB', 'W-L', 'ERA', 'SV', 'INN', 'K', 'QS'];
+const HIT_CATS = ['R', 'HR', 'RBI', 'SB', 'AVG', 'BB'];
+const PIT_CATS = ['W-L', 'ERA', 'SV', 'INN', 'K', 'QS'];
+const SLOTS = [
+  ['C','Catcher'],['1B','First Base'],['2B','Second Base'],['3B','Third Base'],
+  ['SS','Shortstop'],['OF','Outfield 1'],['OF','Outfield 2'],['OF','Outfield 3'],
+  ['P','Pitcher 1'],['P','Pitcher 2'],['P','Pitcher 3'],['P','Pitcher 4'],['P','Pitcher 5'],
+  ['BN','Bench 1'],['BN','Bench 2'],['BN','Bench 3']
+];
+const CAT_COLORS = {"R": "#1565C0", "HR": "#AD1457", "RBI": "#2E7D32", "SB": "#00838F", "AVG": "#558B2F", "BB": "#6A1B9A", "W-L": "#E65100", "ERA": "#37474F", "SV": "#BF360C", "INN": "#4A148C", "K": "#0277BD", "QS": "#5D4037"};
+const POS_COLORS = {"C": "#1565C0", "1B": "#2E7D32", "2B": "#6A1B9A", "3B": "#BF360C", "SS": "#00838F", "OF": "#558B2F", "P": "#37474F", "BN": "#5D4037"};
+const LOWER_BETTER = new Set(["ERA"]);
+
+
+// Suppress cross-origin script errors on iOS Safari
+window.addEventListener('error', function(e) {
+  // Silently catch cross-origin errors (Script error.)
+  if (e.message === 'Script error.' || e.message === 'Script error') {
+    e.preventDefault();
+    return true;
+  }
+});
+window.addEventListener('unhandledrejection', function(e) {
+  e.preventDefault();
+});
+
+// ── STORAGE ───────────────────────────────────────────────────────────────────
+// ── TREASURER DATA ────────────────────────────────────────────────────────
+const BUYIN = 50;
+const MOVE_COST = 1;
+const MONTHS = ["Apr","May","Jun","Jul","Aug","Sep","Oct"];
+
+function initMoves() {
+  return Object.fromEntries(TEAMS.map(t => [t,
+    Object.fromEntries(MONTHS.map(m => [m, 0]))
+  ]));
+}
+
+function initPaid() {
+  return Object.fromEntries(TEAMS.map(t => [t,
+    { entry: false, ...Object.fromEntries(MONTHS.map(m => [m, false])) }
+  ]));
+}
+
+let paid = initPaid();
+
+function savePaid() {
+  localStorage.setItem("fb26_paid", JSON.stringify(paid));
+  if (SYNC_ENABLED()) pushToCloud();
+}
+
+function loadPaid() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("fb26_paid") || "null");
+    if (saved) {
+      paid = initPaid();
+      TEAMS.forEach(t => {
+        if (saved[t]) {
+          paid[t] = { entry: saved[t].entry || false, ...Object.fromEntries(MONTHS.map(m => [m, saved[t][m] || false])) };
+        }
+      });
+    } else {
+      paid = initPaid();
+    }
+  } catch { paid = initPaid(); }
+}
+
+function togglePaid(team, month) {
+  if (!paid[team]) paid[team] = { entry: false, ...Object.fromEntries(MONTHS.map(m => [m, false])) };
+  paid[team][month] = !paid[team][month];
+  savePaid();
+  renderTreasurer();
+}
+
+function toggleEntryPaid(team) {
+  if (!paid[team]) paid[team] = { entry: false, ...Object.fromEntries(MONTHS.map(m => [m, false])) };
+  paid[team].entry = !paid[team].entry;
+  savePaid();
+  renderTreasurer();
+}
+
+let moves = initMoves();
+
+function saveMoves() {
+  localStorage.setItem("fb26_moves", JSON.stringify(moves));
+  if (SYNC_ENABLED()) pushToCloud();
+}
+
+function loadMoves() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("fb26_moves") || "null");
+    if (saved) {
+      // Migrate old flat format {team: count} to new monthly format
+      moves = initMoves();
+      TEAMS.forEach(t => {
+        if (typeof saved[t] === "number") {
+          // Old format — put all in April
+          moves[t]["Apr"] = saved[t];
+        } else if (saved[t] && typeof saved[t] === "object") {
+          moves[t] = saved[t];
+        }
+      });
+    } else {
+      moves = initMoves();
+    }
+  } catch { moves = initMoves(); }
+}
+
+function addMove(team, month, delta) {
+  if (!moves[team]) moves[team] = Object.fromEntries(MONTHS.map(m => [m, 0]));
+  moves[team][month] = Math.max(0, (moves[team][month]||0) + delta);
+  saveMoves();
+  renderTreasurer();
+}
+
+function resetMoves() {
+  if (!confirm("Reset all move counts to 0?")) return;
+  moves = initMoves();
+  saveMoves();
+  renderTreasurer();
+}
+
+function totalMovesForTeam(team) {
+  return MONTHS.reduce((s, m) => s + (moves[team]?.[m] || 0), 0);
+}
+
+function renderTreasurer() {
+  const summaryEl = document.getElementById("treasurerSummary");
+  const tableEl   = document.getElementById("treasurerTable");
+  const poolEl    = document.getElementById("totalPool");
+  if (!tableEl) return;
+
+  const totalMoveRevenue = TEAMS.reduce((s, t) => s + totalMovesForTeam(t) * MOVE_COST, 0);
+  const totalPool = TEAMS.length * BUYIN + totalMoveRevenue;
+  const totalOutstanding = TEAMS.reduce((s, t) => {
+    const ep = paid[t]?.entry || false;
+    const pm = MONTHS.reduce((ms, m) => ms + ((paid[t]?.[m] && moves[t]?.[m]) ? (moves[t][m] * MOVE_COST) : 0), 0);
+    return s + (ep ? 0 : BUYIN) + (totalMovesForTeam(t) * MOVE_COST - pm);
+  }, 0);
+
+  if (poolEl) poolEl.innerHTML = `$${totalPool} <span style="font-size:13px;color:${totalOutstanding>0?"#f87171":"#4ade80"}">(${totalOutstanding>0?"$"+totalOutstanding+" outstanding":"✓ all collected"})</span>`;
+  if (summaryEl) summaryEl.innerHTML = "";
+
+  let html = "";
+
+  // ── ENTRY FEES CARD ───────────────────────────────────────────────────────
+  html += `<div class="card" style="margin-bottom:14px;padding:0;overflow:hidden">
+    <div style="padding:10px 14px;background:rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:space-between">
+      <div style="font-size:13px;font-weight:700;color:#fbbf24;letter-spacing:0.04em">💵 Entry Fees — $${BUYIN} each</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.4)">${TEAMS.filter(t=>paid[t]?.entry).length}/${TEAMS.length} paid</div>
+    </div>
+    ${TEAMS.map((team, i) => {
+      const entryPaid = paid[team]?.entry || false;
+      const bg = i%2===0?"rgba(255,255,255,0.02)":"transparent";
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:${bg};border-top:1px solid rgba(255,255,255,0.04)">
+        <div style="font-size:14px;font-weight:700;color:#e2e8f0">${team}</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="font-size:13px;color:${entryPaid?"#4ade80":"#fbbf24"};font-weight:600">${entryPaid?"Paid":"$"+BUYIN+" owed"}</div>
+          <div onclick="toggleEntryPaid('${team}')" style="display:flex;align-items:center;gap:5px;cursor:pointer;padding:5px 10px;border-radius:7px;background:${entryPaid?"rgba(74,222,128,0.12)":"rgba(255,255,255,0.04)"};border:1px solid ${entryPaid?"rgba(74,222,128,0.4)":"rgba(255,255,255,0.1)"}">
+            <div style="width:18px;height:18px;border-radius:4px;border:2px solid ${entryPaid?"#4ade80":"rgba(255,255,255,0.3)"};background:${entryPaid?"#4ade80":"transparent"};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              ${entryPaid?'<span style="color:#000;font-size:12px;font-weight:900;line-height:1">✓</span>':""}
+            </div>
+            <span style="font-size:11px;font-weight:600;color:${entryPaid?"#4ade80":"rgba(255,255,255,0.4)"}">${entryPaid?"Paid":"Mark Paid"}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join("")}
+  </div>`;
+
+  // ── ONE CARD PER MONTH ────────────────────────────────────────────────────
+  MONTHS.forEach(month => {
+    const monthTotal = TEAMS.reduce((s,t) => s + (moves[t]?.[month]||0), 0);
+    const paidCount  = TEAMS.filter(t => (moves[t]?.[month]||0) > 0 && paid[t]?.[month]).length;
+    const unpaidCount = TEAMS.filter(t => (moves[t]?.[month]||0) > 0 && !paid[t]?.[month]).length;
+
+    html += `<div class="card" style="margin-bottom:14px;padding:0;overflow:hidden">
+      <div style="padding:10px 14px;background:rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:13px;font-weight:700;color:#60a5fa;letter-spacing:0.04em">📅 ${month} — ${monthTotal} total move${monthTotal!==1?"s":""}</div>
+        <div style="font-size:11px;color:${unpaidCount>0?"#f87171":"#4ade80"}">${unpaidCount>0?unpaidCount+" unpaid":"✓ all paid"}</div>
+      </div>
+      ${TEAMS.map((team, i) => {
+        const count  = moves[team]?.[month] || 0;
+        const isPaid = paid[team]?.[month]  || false;
+        const fee    = count * MOVE_COST;
+        const bg     = i%2===0?"rgba(255,255,255,0.02)":"transparent";
+        return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:${bg};border-top:1px solid rgba(255,255,255,0.04);gap:8px">
+          <div style="font-size:14px;font-weight:700;color:#e2e8f0;min-width:70px">${team}</div>
+          <div style="display:flex;align-items:center;gap:8px;flex:1">
+            <button onclick="addMove('${team}','${month}',-1)" style="width:28px;height:28px;border-radius:50%;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:#e2e8f0;font-size:18px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0">−</button>
+            <span style="font-size:15px;font-weight:700;color:${count>0?"#60a5fa":"rgba(255,255,255,0.2)"};min-width:22px;text-align:center">${count}</span>
+            <button onclick="addMove('${team}','${month}',1)" style="width:28px;height:28px;border-radius:50%;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:#e2e8f0;font-size:18px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0">+</button>
+            <span style="font-size:12px;color:rgba(255,255,255,0.35)">${count>0?"= $"+fee:""}</span>
+          </div>
+          ${count>0 ? `<div onclick="togglePaid('${team}','${month}')" style="display:flex;align-items:center;gap:5px;cursor:pointer;padding:5px 10px;border-radius:7px;background:${isPaid?"rgba(74,222,128,0.12)":"rgba(255,255,255,0.04)"};border:1px solid ${isPaid?"rgba(74,222,128,0.4)":"rgba(255,255,255,0.1)"}">
+            <div style="width:18px;height:18px;border-radius:4px;border:2px solid ${isPaid?"#4ade80":"rgba(255,255,255,0.3)"};background:${isPaid?"#4ade80":"transparent"};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              ${isPaid?'<span style="color:#000;font-size:12px;font-weight:900;line-height:1">✓</span>':""}
+            </div>
+            <span style="font-size:11px;font-weight:600;color:${isPaid?"#4ade80":"rgba(255,255,255,0.4)"}">${isPaid?"Paid":"Owes"}</span>
+          </div>` : `<div style="width:82px"></div>`}
+        </div>`;
+      }).join("")}
+    </div>`;
+  });
+
+  // ── SUMMARY CARD ─────────────────────────────────────────────────────────
+  html += `<div class="card" style="background:rgba(251,191,36,0.05);border:1px solid rgba(251,191,36,0.2);padding:14px;margin-bottom:10px">
+    <div style="font-size:14px;font-weight:800;color:#fbbf24;margin-bottom:12px">📊 League Summary</div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0;border-top:1px solid rgba(255,255,255,0.05)">
+      <div style="font-size:13px;color:rgba(255,255,255,0.5)">Buy-ins (${TEAMS.length} × $${BUYIN})</div>
+      <div style="font-size:13px;font-weight:700;color:#e2e8f0">$${TEAMS.length * BUYIN}</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0;border-top:1px solid rgba(255,255,255,0.05)">
+      <div style="font-size:13px;color:rgba(255,255,255,0.5)">Total move fees</div>
+      <div style="font-size:13px;font-weight:700;color:#60a5fa">$${totalMoveRevenue}</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:10px 0 0;border-top:2px solid rgba(251,191,36,0.3);margin-top:6px">
+      <div style="font-size:14px;font-weight:800;color:#fbbf24">💰 Total Pool</div>
+      <div style="font-size:22px;font-weight:800;color:#4ade80">$${totalPool}</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0 0">
+      <div style="font-size:13px;color:rgba(255,255,255,0.4)">Still outstanding</div>
+      <div style="font-size:14px;font-weight:700;color:${totalOutstanding>0?"#f87171":"#4ade80"}">${totalOutstanding>0?"$"+totalOutstanding:"✓ $0"}</div>
+    </div>
+  </div>`;
+
+  tableEl.innerHTML = html;
+}
+
+
+// ── SHARED SYNC — kvdb.io ────────────────────────────────────────────────
+// Uses kvdb.io free KV store — no account, no npm, works from anywhere
+// All managers share one sync key — commissioner shares it with the league
+const SYNC_ENABLED  = () => true; // kvdb.io works from anywhere
+let syncPollTimer   = null;
+let lastSyncHash    = "";
+let isSyncing       = false;
+
+function dataHash(obj) {
+  const s = JSON.stringify(obj);
+  return s.length + "_" + s.slice(0, 60);
+}
+
+// SYNC_KEY is set once by the league commissioner via the setup prompt
+// Get or create a unique key for this league
+function getSyncKey() {
+  let key = localStorage.getItem("fb26_kvkey");
+  if (!key) {
+    key = "fb26_" + Math.random().toString(36).slice(2, 10);
+    localStorage.setItem("fb26_kvkey", key);
+  }
+  return key;
+}
+
+async function pushToCloud() {
+  if (!SYNC_ENABLED() || isSyncing) return;
+  isSyncing = true;
+  setSyncIndicator("⬆️ Saving...", "#fbbf24");
+  try {
+    const payload = {
+      draftPicks, stats, moves, paid,
+      ts: new Date().toISOString(),
+      updatedBy: localStorage.getItem("fb26_manager") || "Unknown"
+    };
+    const key = getSyncKey();
+    const r = await fetch(`https://kvdb.io/9LMkGmRdxAGhB6ekNm3zmP/${key}`, {
+      method: "PUT",
+      body: JSON.stringify(payload)
+    });
+    if (r.ok) {
+      lastSyncHash = dataHash(draftPicks);
+      setSyncIndicator("✅ Synced", "#4ade80");
+      setTimeout(() => setSyncIndicator("🔄 Live", "#4ade80"), 2000);
+    } else {
+      setSyncIndicator("⚠️ Sync failed", "#f87171");
+    }
+  } catch(e) {
+    setSyncIndicator("⚠️ Offline", "#f87171");
+  }
+  isSyncing = false;
+}
+
+let isFetchingStats = false;
+
+async function pullFromCloud() {
+  if (!SYNC_ENABLED()) return;
+  try {
+    const key = getSyncKey();
+    const r = await fetch(`https://kvdb.io/9LMkGmRdxAGhB6ekNm3zmP/${key}`);
+    if (!r.ok) return;
+    const text = await r.text();
+    if (!text || text === "null") return;
+    const data = JSON.parse(text);
+    if (!data) return;
+
+    const newHash = dataHash(data.draftPicks || {});
+    if (newHash === lastSyncHash) return;
+
+    if (data.draftPicks) draftPicks = data.draftPicks;
+    if (data.stats)      stats      = data.stats;
+    if (data.moves)      moves      = data.moves;
+    if (data.paid)       paid       = data.paid;
+    lastSyncHash = newHash;
+
+    renderAll();
+    const ago = data.ts ? timeAgo(data.ts) : "";
+    const by  = data.updatedBy || "someone";
+    setSyncIndicator(`🔄 Updated ${ago} by ${by}`, "#4ade80");
+  } catch(e) {}
+}
+
+function timeAgo(isoStr) {
+  const diff = Math.floor((Date.now() - new Date(isoStr)) / 1000);
+  if (diff < 60) return "just now";
+  if (diff < 3600) return Math.floor(diff/60) + "m ago";
+  return Math.floor(diff/3600) + "h ago";
+}
+
+function startPolling() {
+  pullFromCloud();
+  syncPollTimer = setInterval(pullFromCloud, 10000);
+  setSyncIndicator("🔄 Live", "#4ade80");
+}
+
+function showSyncKeySetup() {
+  const current = localStorage.getItem("fb26_kvkey") || "";
+  const key = prompt("Enter the league sync key (get this from your commissioner):\n\nYour current key: " + (current || "none"), current);
+  if (key && key.trim()) {
+    localStorage.setItem("fb26_kvkey", key.trim());
+    lastSyncHash = "";
+    pullFromCloud();
+    setSyncIndicator("🔄 Reconnecting...", "#fbbf24");
+  }
+}
+
+function setSyncIndicator(text, color) {
+  const el = document.getElementById("syncStatus");
+  if (el) { el.textContent = text; el.style.color = color; }
+}
+
+function saveAll() {
+  localStorage.setItem("fb26_draft", JSON.stringify(draftPicks));
+  localStorage.setItem("fb26_stats", JSON.stringify(stats));
+  localStorage.setItem("fb26_moves", JSON.stringify(moves));
+  const ts = new Date().toLocaleString("en-US",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});
+  localStorage.setItem("fb26_ts", ts);
+  // Also push to cloud if sync is configured
+  if (SYNC_ENABLED()) pushToCloud();
+}
+
+function loadAll() {
+  try { draftPicks = JSON.parse(localStorage.getItem("fb26_draft") || "null") || initDraft(); } catch { draftPicks = initDraft(); }
+  try { stats = JSON.parse(localStorage.getItem("fb26_stats") || "null") || initStats(); } catch { stats = initStats(); }
+}
+
+// ── DRAFT STATE ───────────────────────────────────────────────────────────────
+function initDraft() {
+  const d = {};
+  TEAMS.forEach(t => {
+    d[t] = {};
+    SLOTS.forEach(([pos,label]) => { d[t][pos + "_" + label] = ""; });
+  });
+  return d;
+}
+let draftPicks = initDraft();
+
+function getDraftVal(team, pos, label) {
+  return draftPicks[team]?.[pos+"_"+label] || "";
+}
+function setDraftVal(team, pos, label, val) {
+  if (!draftPicks[team]) draftPicks[team] = {};
+  draftPicks[team][pos+"_"+label] = val;
+  saveAll();
+  // Rebuild entire draft table so taken players are disabled everywhere
+  buildDraftTable();
+}
+
+function updatePickedStyle(team, pos, label, val) {
+  const id = `sel_${team}_${pos}_${label.replace(/ /g,"_")}`;
+  const el = document.getElementById(id);
+  if (el) { el.className = val && val !== PLAYER_LISTS[pos]?.[0] ? "draft-select picked" : "draft-select"; }
+}
+
+// ── BUILD DRAFT TABLE ─────────────────────────────────────────────────────────
+function buildDraftTable() {
+  const table = document.getElementById("draftTable");
+
+  // Collect ALL currently drafted players across all teams and positions
+  const takenByTeam = {}; // player -> team that owns them
+  TEAMS.forEach(t => {
+    SLOTS.forEach(([pos, label]) => {
+      const v = getDraftVal(t, pos, label);
+      if (v && v !== (PLAYER_LISTS[pos]?.[0] || "")) {
+        takenByTeam[v] = t;
+      }
+    });
+  });
+
+  // Header
+  let hdr = "<thead><tr><th class='slot-hdr'>Slot</th>";
+  TEAMS.forEach(t => { hdr += `<th style="color:#e2e8f0">${t}</th>`; });
+  hdr += "</tr></thead>";
+
+  // Body
+  let body = "<tbody>";
+  let prevPos = "";
+  SLOTS.forEach(([pos, label]) => {
+    const color = POS_COLORS[pos] || "#555";
+    prevPos = pos;
+    body += `<tr>`;
+    body += `<td class="slot-label" style="background:${color}22;border-left:3px solid ${color}">${pos} · ${label}</td>`;
+    TEAMS.forEach(t => {
+      const id = `sel_${t}_${pos}_${label.replace(/ /g,"_")}`;
+      const cur = getDraftVal(t, pos, label);
+      const isPicked = cur && cur !== (PLAYER_LISTS[pos]?.[0] || "");
+      const cls = isPicked ? "draft-select picked" : "draft-select";
+      const options = (PLAYER_LISTS[pos] || []).map(p => {
+        const sel = p === cur ? " selected" : "";
+        const owner = takenByTeam[p];
+        // Disable if taken by a different team
+        if (owner && owner !== t) {
+          return `<option value="${p}" disabled style="color:#666">${p} (${owner})</option>`;
+        }
+        return `<option value="${p}"${sel}>${p}</option>`;
+      }).join("");
+      body += `<td><select class="${cls}" id="${id}" onchange="setDraftVal('${t}','${pos}','${label}',this.value)">${options}</select></td>`;
+    });
+    body += "</tr>";
+  });
+  body += "</tbody>";
+  table.innerHTML = hdr + body;
+}
+
+function resetDraft() {
+  if (!confirm("Reset all draft picks?")) return;
+  draftPicks = initDraft();
+  saveAll();
+  buildDraftTable();
+  showFlash("Draft reset!", "ok");
+}
+
+function exportDraft() {
+  let out = "2026 Fantasy Baseball Draft Results\n";
+  out += "=".repeat(50) + "\n\n";
+  TEAMS.forEach(t => {
+    out += t + "\n";
+    SLOTS.forEach(([pos, label]) => {
+      const v = getDraftVal(t, pos, label);
+      if (v && v !== (PLAYER_LISTS[pos]?.[0] || "")) {
+        out += `  ${pos.padEnd(3)} ${label.padEnd(14)} ${v}\n`;
+      }
+    });
+    out += "\n";
+  });
+  const blob = new Blob([out], {type:"text/plain"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "draft_results_2026.txt";
+  a.click();
+}
+
+// ── BUILD ROUND TABLE ─────────────────────────────────────────────────────────
+function buildRoundTable() {
+  const table = document.getElementById("roundTable");
+  let html = "<thead><tr><th>Round</th>";
+  TEAMS.forEach(t => { html += `<th>${t}</th>`; });
+  html += "</tr></thead><tbody>";
+
+  let overall = 1;
+  for (let r = 1; r <= 16; r++) {
+    const order = r % 2 === 1 ? [...Array(12).keys()] : [...Array(12).keys()].reverse();
+    const cells = new Array(12).fill("");
+    order.forEach((ti, pickPos) => { cells[ti] = overall++; });
+    html += `<tr><td style="font-weight:700;color:#fff;background:#1A5C2E22">Rd ${r}</td>`;
+    cells.forEach((pk, ti) => {
+      const myPick = TEAMS[ti] === MY_TEAM;
+      html += `<td class="pick-num" style="${myPick?"font-weight:700;color:#e2e8f0":""}">Pick ${pk}</td>`;
+    });
+    html += "</tr>";
+  }
+  html += "</tbody>";
+  table.innerHTML = html;
+}
+
+// ── STATS ─────────────────────────────────────────────────────────────────────
+function initStats() { return Object.fromEntries(TEAMS.map(t => [t, Object.fromEntries(ALL_CATS.map(c => [c,""]))])); }
+let stats = initStats();
+let activeStatTeam = null;
+
+function fmtVal(cat, v) {
+  if (v === "" || v === undefined || v === null) return "—";
+  if (cat === "W-L") return v; // already formatted as "W-L" string
+  if (isNaN(parseFloat(v))) return "—";
+  if (cat === "AVG") return parseFloat(v).toFixed(3);
+  if (cat === "ERA") return parseFloat(v).toFixed(2);
+  if (cat === "INN") return parseFloat(v).toFixed(1);
+  return v;
+}
+function medal(p) { return p===1?"🥇":p===2?"🥈":p===3?"🥉":""; }
+
+function getRotoRanks() {
+  // 12-1 points system. 1st=12, 2nd=11 ... 12th=1
+  // Ties: sum the point values of tied positions, divide equally
+  // e.g. 2 teams tied for 3rd (worth 10+9) each get 9.5 pts
+  const ranks = Object.fromEntries(TEAMS.map(t => [t, {}]));
+  for (const cat of ALL_CATS) {
+    const vals = TEAMS.map(t => {
+      const raw = stats[t][cat];
+      // W-L stored as "5-3" string - extract numeric value for ranking
+      let v;
+      if (cat === "W-L" && raw && raw.includes("-")) {
+        const parts = raw.split("-");
+        v = parseInt(parts[0]) - parseInt(parts[1]);
+      } else {
+        v = parseFloat(raw);
+      }
+      return {t, v};
+    }).filter(x => !isNaN(x.v));
+    if (!vals.length) continue;
+    const n = vals.length;
+    const sorted = [...vals].sort((a,b) => LOWER_BETTER.has(cat) ? a.v-b.v : b.v-a.v);
+    // Assign pts: 1st place = 12, 2nd = 11, ..., 12th = 1
+    // For ties: share the sum of the tied positions' points
+    let i = 0;
+    while (i < sorted.length) {
+      let j = i;
+      while (j < sorted.length && sorted[j].v === sorted[i].v) j++;
+      const tieCount = j - i;
+      // Points for positions i..j-1: top = n, bottom = 1
+      let ptSum = 0;
+      for (let k = i; k < j; k++) ptSum += (n - k);
+      const shared = Math.round((ptSum / tieCount) * 10) / 10;
+      for (let k = i; k < j; k++) ranks[sorted[k].t][cat] = shared;
+      i = j;
+    }
+  }
+  return ranks;
+}
+
+function getTotals(ranks) {
+  return Object.fromEntries(TEAMS.map(t => [t, ALL_CATS.reduce((s,c) => s+(ranks[t][c]||0), 0)]));
+}
+
+function updateStat(team, cat, val) {
+  stats[team][cat] = val;
+  saveAll();
+  renderStats();
+  renderStats();
+}
+
+// ── STAT ENTRY PANEL ──────────────────────────────────────────────────────────
+function renderStatPills() {
+  // statPills/statRows were part of the old Stat Entry tab — skip if not present
+  if (!document.getElementById("statPills")) return;
+  const ranks = getRotoRanks();
+  const totals = getTotals(ranks);
+  const sorted = [...TEAMS].sort((a,b) => totals[b]-totals[a]);
+  const placeOf = Object.fromEntries(sorted.map((t,i) => [t,i+1]));
+
+  document.getElementById("statPills").innerHTML = TEAMS.map(t => {
+    const on = activeStatTeam === t;
+    return `<button class="team-pill ${on?"on":"off"}" onclick="toggleStatTeam('${t}')">${t}</button>`;
+  }).join("");
+
+  const show = activeStatTeam ? [activeStatTeam] : TEAMS;
+  const ranks2 = getRotoRanks();
+  const totals2 = getTotals(ranks2);
+  const sorted2 = [...TEAMS].sort((a,b) => totals2[b]-totals2[a]);
+  const placeOf2 = Object.fromEntries(sorted2.map((t,i) => [t,i+1]));
+
+  document.getElementById("statRows").innerHTML = show.map(team => {
+    const pts = totals2[team];
+    const pl = placeOf2[team];
+    const badge = pts > 0 ? `<span style="font-size:11px;color:rgba(255,255,255,0.4)">#${pl} · ${pts} pts</span>` : "";
+
+    const makeInputs = cats => cats.map(cat => {
+      const v = stats[team][cat];
+      const step = cat==="AVG"?"0.001":cat==="ERA"?"0.01":cat==="INN"?"0.1":"1";
+      return `<div>
+        <div class="cat-lbl" style="color:${CAT_COLORS[cat]}">${cat}</div>
+        <input type="number" step="${step}" value="${v}" placeholder="—" class="cat-inp ${v?"has-val":""}"
+          oninput="updateStat('${team}','${cat}',this.value)">
+      </div>`;
+    }).join("");
+
+    return `<div class="team-entry">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
+        <span style="font-size:13px;font-weight:700">${team}</span>${badge}
+      </div>
+      <div class="cat-grid-6">${makeInputs(HIT_CATS)}</div>
+      <div class="cat-grid-6" style="margin-top:5px">${makeInputs(PIT_CATS)}</div>
+    </div>`;
+  }).join("");
+}
+
+function toggleStatTeam(t) { activeStatTeam = activeStatTeam===t?null:t; renderStatPills(); }
+
+// ── STANDINGS ─────────────────────────────────────────────────────────────────
+function getRotoRanksSplit() {
+  const ranks = getRotoRanks();
+  const hitting = Object.fromEntries(TEAMS.map(t => [t,
+    HIT_CATS.reduce((s,c) => s+(ranks[t][c]||0), 0)
+  ]));
+  const pitching = Object.fromEntries(TEAMS.map(t => [t,
+    PIT_CATS.reduce((s,c) => s+(ranks[t][c]||0), 0)
+  ]));
+  return { hitting, pitching };
+}
+
+function renderStandings() {
+  const ranks  = getRotoRanks();
+  const totals = getTotals(ranks);
+  const split  = getRotoRanksSplit();
+  const sorted = [...TEAMS].sort((a,b) => totals[b]-totals[a]);
+
+  // Header
+  const hdrEl = document.getElementById("standingsHdr");
+  const cols = "grid-template-columns: 110px repeat(12,1fr) 58px 58px 68px 36px";
+  hdrEl.setAttribute("style", `display:grid;padding:8px 14px;gap:4px;background:rgba(0,0,0,0.3);${cols};min-width:600px`);
+  hdrEl.innerHTML =
+    `<div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.35)">TEAM</div>` +
+    HIT_CATS.map(c => `<div style="font-size:9px;font-weight:700;color:${CAT_COLORS[c]};text-align:center">${c}</div>`).join("") +
+    PIT_CATS.map(c => `<div style="font-size:9px;font-weight:700;color:${CAT_COLORS[c]};text-align:center">${c}</div>`).join("") +
+    `<div style="font-size:9px;font-weight:700;color:#60a5fa;text-align:center">BAT</div>` +
+    `<div style="font-size:9px;font-weight:700;color:#f472b6;text-align:center">ARM</div>` +
+    `<div style="font-size:9px;font-weight:700;color:#fbbf24;text-align:center">TOTAL</div>` +
+    `<div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);text-align:center">#</div>`;
+
+  // Body — show roto points per category, not raw stats
+  document.getElementById("standingsBody").innerHTML = sorted.map((team, i) => {
+    const pl     = i + 1;
+    const pts    = totals[team];
+    const hitPts = Math.round(split.hitting[team]  * 10) / 10;
+    const pitPts = Math.round(split.pitching[team] * 10) / 10;
+    const md     = medal(pl);
+    const ptsColor = pl===1?"#fbbf24":pl===2?"#e2e8f0":pl===3?"#cd7f32":"#e2e8f0";
+    const rowBg    = i%2===0?"rgba(255,255,255,0.02)":"transparent";
+
+    const catPts = ALL_CATS.map(cat => {
+      const r   = ranks[team][cat];
+      const has = r !== undefined;
+      const top = r >= 10; const bot = r && r <= 3;
+      const vc  = !has ? "rgba(255,255,255,0.12)" : top ? "#4ade80" : bot ? "#f87171" : "#e2e8f0";
+      return `<div style="text-align:center;font-size:12px;font-weight:${has?700:400};color:${vc}">${has ? r : "—"}</div>`;
+    }).join("");
+
+    return `<div class="s-row" style="display:grid;padding:7px 14px;gap:4px;align-items:center;${cols};min-width:600px;background:${rowBg};border-top:1px solid rgba(255,255,255,0.04)">
+      <div style="font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${team}</div>
+      ${catPts}
+      <div style="text-align:center;font-size:14px;font-weight:700;color:#60a5fa">${hitPts||"—"}</div>
+      <div style="text-align:center;font-size:14px;font-weight:700;color:#f472b6">${pitPts||"—"}</div>
+      <div style="text-align:center;font-size:16px;font-weight:800;color:${ptsColor}">${pts||"—"}</div>
+      <div style="text-align:center;font-size:13px">${md||`<span style="color:rgba(255,255,255,0.3);font-size:11px">#${pl}</span>`}</div>
+    </div>`;
+  }).join("");
+}
+
+
+// ── CATEGORIES ────────────────────────────────────────────────────────────────
+function renderCats() {
+  document.getElementById("catsGrid").innerHTML = ALL_CATS.map(cat => {
+    const rev = LOWER_BETTER.has(cat);
+    const vals = TEAMS.map(t => ({t,v:parseFloat(stats[t][cat])})).filter(x=>!isNaN(x.v)).sort((a,b)=>rev?a.v-b.v:b.v-a.v);
+    const rows = vals.map((item,i) => {
+      const md=medal(i+1);
+      const vc=i===0?CAT_COLORS[cat]:i<=2?"rgba(255,255,255,0.8)":"rgba(255,255,255,0.4)";
+      return `<div class="cat-row">
+        <div style="display:flex;align-items:center;gap:5px">
+          <span style="min-width:18px;font-size:11px">${md||`<span style="color:rgba(255,255,255,0.2);font-size:9px">#${i+1}</span>`}</span>
+          <span style="font-size:11px">${item.t}</span>
+        </div>
+        <span style="font-size:12px;font-weight:700;color:${vc}">${fmtVal(cat,String(item.v))}</span>
+      </div>`;
+    }).join("");
+    return `<div class="cat-card" style="border:1px solid ${CAT_COLORS[cat]}44">
+      <div class="cat-card-hdr" style="background:${CAT_COLORS[cat]}">
+        <span style="font-weight:800;font-size:13px;color:#fff">${cat}</span>
+        <span style="font-size:9px;color:rgba(255,255,255,0.6)">${rev?"↓ low=best":"↑ high=best"}</span>
+      </div>
+      ${vals.length?rows:`<div style="padding:10px;font-size:11px;color:rgba(255,255,255,0.25);text-align:center">No data</div>`}
+    </div>`;
+  }).join("");
+}
+
+// ── MY TEAM ───────────────────────────────────────────────────────────────────
+
+
+// ── PARSE CLIPBOARD ───────────────────────────────────────────────────────────
+function handleParse() {
+  const text = document.getElementById("pasteArea").value;
+  const lines = text.split("\n").map(l=>l.trim()).filter(Boolean);
+  const results = {};
+  for (const line of lines) {
+    const teamMatch = TEAMS.find(t => line.toLowerCase().includes(t.toLowerCase()));
+    if (!teamMatch) continue;
+    const nums = line.split(/[\t|,\s]+/).filter(s=>!isNaN(parseFloat(s))&&s!=="").map(parseFloat);
+    if (nums.length >= 6) {
+      const mapped = {};
+      ALL_CATS.forEach((cat,i) => { if (i<nums.length) mapped[cat]=String(nums[i]); });
+      results[teamMatch] = mapped;
+    }
+  }
+  const count = Object.keys(results).length;
+  const msg = document.getElementById("parseMsg");
+  if (!count) {
+    msg.className="parse-msg err"; msg.textContent="Couldn't find team data. Try copying the full standings table."; msg.style.display="block";
+    return;
+  }
+  for (const [t,ts] of Object.entries(results)) stats[t]={...stats[t],...ts};
+  saveAll(); document.getElementById("pasteArea").value="";
+  msg.className="parse-msg ok"; msg.textContent=`✓ Updated ${count} team${count>1?"s":""}!`; msg.style.display="block";
+  setTimeout(()=>msg.style.display="none",3500);
+  renderStats(); switchTab("standings");
+}
+function clearPaste() { document.getElementById("pasteArea").value=""; document.getElementById("parseMsg").style.display="none"; }
+function resetStats() { if(!confirm("Reset all stats?")) return; stats=initStats(); saveAll(); renderStats(); showFlash("Stats cleared!","ok"); }
+
+// ── RENDER ALL ────────────────────────────────────────────────────────────────
+function renderStats() { renderStatPills(); renderStandings(); renderCats(); }
+
+function renderAll() {
+  buildDraftTable();
+  buildRoundTable();
+  renderStats();
+  renderTreasurer();
+  // Update summary boxes only (never wipe roster rows)
+  TEAMS.forEach(t => {
+    if (document.getElementById("pts_" + t)) renderTeamSummary(t);
+  });
+}
+
+// ── TAB SWITCHING ─────────────────────────────────────────────────────────────
+const TAB_IDS = ["draft","standings","cats","lookup","treasurer","team_Tyson","team_Rocco","team_Jim","team_Brad","team_Thad","team_Judd","team_Mike","team_Luke","team_Alex","team_Tom","team_Gary"];
+function switchTab(id) {
+  TAB_IDS.forEach(t => {
+    const el = document.getElementById("panel-"+t);
+    if (el) el.classList.toggle("active", t===id);
+  });
+  // Match active state by checking onclick attribute, not index
+  document.querySelectorAll(".nav-tab").forEach(btn => {
+    const match = btn.getAttribute("onclick") && btn.getAttribute("onclick").includes("'"+id+"'");
+    btn.classList.toggle("active", !!match);
+  });
+  if (id.startsWith("team_")) {
+    const team = id.replace("team_","");
+    renderTeamPanel(team);
+  }
+  if (id === "treasurer") renderTreasurer();
+}
+
+
+// ── TEAM PANEL ─────────────────────────────────────────────────────────────
+
+// ── TEAM PANEL ─────────────────────────────────────────────────────────────
+// Cache player IDs so we don't re-search on every open
+const PLAYER_ID_MAP = {"Aaron Judge": 592450, "Shohei Ohtani": 660271, "Mookie Betts": 605141, "Juan Soto": 665742, "Ronald Acuna Jr.": 660670, "Freddie Freeman": 518692, "Bobby Witt Jr.": 677951, "Jose Ramirez": 608070, "Kyle Tucker": 663656, "Julio Rodriguez": 677594, "Vladimir Guerrero Jr.": 665489, "Bryce Harper": 547180, "Gunnar Henderson": 683002, "Elly De La Cruz": 682829, "Francisco Lindor": 596019, "Trea Turner": 607208, "Corey Seager": 608369, "Yordan Alvarez": 670541, "Alex Bregman": 608324, "Manny Machado": 592518, "Matt Olson": 621566, "Pete Alonso": 624413, "Rafael Devers": 646240, "Austin Riley": 663586, "Jose Altuve": 514888, "Corbin Carroll": 682998, "Fernando Tatis Jr.": 665487, "Oneil Cruz": 665833, "Ozzie Albies": 645277, "Bo Bichette": 666182, "Carlos Correa": 621043, "William Contreras": 672578, "Cal Raleigh": 663728, "Adley Rutschman": 668939, "J.T. Realmuto": 592663, "Will Smith": 669257, "Salvador Perez": 521692, "Daulton Varsho": 656024, "Alejandro Kirk": 672386, "Francisco Alvarez": 682628, "Nico Hoerner": 663538, "Ketel Marte": 606466, "Brice Turang": 669720, "Bryson Stott": 681082, "Jonathan India": 663697, "Brendan Donovan": 680977, "Gleyber Torres": 650402, "Marcus Semien": 543760, "Tommy Edman": 669242, "Nathaniel Lowe": 663993, "Yandy Diaz": 650490, "Jake Cronenworth": 630105, "Spencer Torkelson": 679529, "Christian Walker": 572233, "Matt Chapman": 571745, "Nolan Arenado": 571448, "Isaac Paredes": 670623, "Ke'Bryan Hayes": 663647, "Eugenio Suarez": 553993, "Ryan McMahon": 641857, "Josh Jung": 673962, "CJ Abrams": 682928, "Willy Adames": 642715, "Dansby Swanson": 621020, "JP Crawford": 641487, "Ha-Seong Kim": 673490, "Jeremy Pena": 665742, "Kyle Schwarber": 656941, "George Springer": 543807, "Teoscar Hernandez": 606192, "Christian Yelich": 592885, "Steven Kwan": 680757, "Bryan Reynolds": 668804, "Randy Arozarena": 668227, "Byron Buxton": 621439, "Seiya Suzuki": 673548, "Brandon Nimmo": 607043, "Mike Trout": 545361, "Jorge Soler": 624577, "Tyler O'Neill": 641933, "Michael Conforto": 624939, "Brent Rooker": 667491, "Jarren Duran": 680776, "Cody Bellinger": 641355, "Tarik Skubal": 669373, "Garrett Crochet": 676508, "Logan Webb": 657277, "Luis Castillo": 622491, "Logan Gilbert": 669302, "Max Fried": 600917, "Framber Valdez": 664285, "Joe Ryan": 669088, "George Kirby": 669923, "Kevin Gausman": 592332, "Ranger Suarez": 664775, "Cole Ragans": 669328, "Dylan Cease": 656302, "Chris Sale": 519242, "Freddy Peralta": 642547, "Nick Pivetta": 601713, "Zac Gallen": 668678, "Michael King": 650633, "Sonny Gray": 543243, "Jacob deGrom": 477132, "Spencer Strider": 675911, "Gerrit Cole": 543037, "Jesus Luzardo": 663738, "Sandy Alcantara": 645261, "Robbie Ray": 592767, "Nathan Eovaldi": 543507, "Tyler Glasnow": 607192, "Blake Snell": 605483, "Pablo Lopez": 641154, "Zack Wheeler": 554430, "Edwin Diaz": 621242, "Josh Hader": 623352, "Ryan Helsley": 671543, "Emmanuel Clase": 666120, "Aroldis Chapman": 547973, "Clay Holmes": 657514, "Devin Williams": 638629, "AJ Minter": 621345, "Tanner Scott": 656288, "Ryan Pressly": 519151, "Craig Kimbrel": 518886, "Kenley Jansen": 445276, "Raisel Iglesias": 593423, "Andres Munoz": 671740, "Patrick Bailey": 673490, "Tyler Stephenson": 663886, "Shea Langeliers": 669127, "Hunter Goodman": 686469, "Gabriel Moreno": 665750, "Logan O'Hoppe": 681351, "Elias Diaz": 553869, "Yainer Diaz": 673237, "Austin Wells": 694021, "Jorge Polanco": 553869, "Vinnie Pasquantino": 676475, "Josh Naylor": 647304, "Michael Busch": 683737, "Jonathan Aranda": 679670, "Alec Bohm": 664761, "Royce Lewis": 668804, "Brett Baty": 683737, "Maikel Garcia": 672530, "Xavier Edwards": 676478, "Ceddanne Rafaela": 694203, "Riley Greene": 682985, "Michael Harris II": 676950, "Pete Crow-Armstrong": 691217, "Jackson Merrill": 694192, "Wyatt Langford": 694192, "Jordan Lawlar": 694192, "Masyn Winn": 694192, "Paul Skenes": 694973, "Cristopher Sanchez": 694192, "Bryan Woo": 694192, "Hunter Brown": 694192, "Chase Burns": 694192, "Eury Perez": 694192, "Kyle Bradish": 694192, "Tanner Bibee": 694192, "Nick Lodolo": 694192, "Ryan Pepiot": 694192, "Cade Horton": 694192, "Yoshinobu Yamamoto": 673548, "Mason Miller": 694192, "Jhoan Duran": 694192, "Pete Fairbanks": 657006, "David Bednar": 669160, "Jordan Romano": 669160, "Robert Suarez": 669160, "Camilo Doval": 676951, "Alexis Diaz": 694192, "Justin Martinez": 694192, "Evan Phillips": 670174, "Alex Lange": 694192, "Cade Smith": 694192};
+const playerIdCache = {};
+
+// ── BULK STATS PRELOAD ─────────────────────────────────────────────────────
+// Preloads all player stats in 2 requests (hitting + pitching) instead of per-player
+let bulkHittingCache = null;
+let bulkPitchingCache = null;
+
+async function preloadBulkStats() {
+  const season = 2026;
+  const hitUrl = `http://statsapi.mlb.com/api/v1/stats?stats=season&group=hitting&season=${season}&sportId=1&limit=1000&gameType=R`;
+  const pitUrl = `http://statsapi.mlb.com/api/v1/stats?stats=season&group=pitching&season=${season}&sportId=1&limit=1000&gameType=R`;
+  
+  const [hitData, pitData] = await Promise.all([
+    mlbFetch(hitUrl),
+    mlbFetch(pitUrl)
+  ]);
+  
+  if (hitData?.stats?.[0]?.splits) {
+    bulkHittingCache = {};
+    hitData.stats[0].splits.forEach(s => {
+      if (s.player?.id) bulkHittingCache[s.player.id] = s.stat;
+    });
+    console.log(`[Bulk] Loaded ${Object.keys(bulkHittingCache).length} hitters`);
+  }
+  
+  if (pitData?.stats?.[0]?.splits) {
+    bulkPitchingCache = {};
+    pitData.stats[0].splits.forEach(s => {
+      if (s.player?.id) bulkPitchingCache[s.player.id] = s.stat;
+    });
+    console.log(`[Bulk] Loaded ${Object.keys(bulkPitchingCache).length} pitchers`);
+  }
+}
+
+async function getStatFromBulk(playerId, group) {
+  const cache = group === "hitting" ? bulkHittingCache : bulkPitchingCache;
+  return cache?.[playerId] || null;
+}
+
+
+
+// Extract just the player name from a dropdown value like "Aaron Judge (NYY) [OF]"
+function extractName(val) {
+  if (!val || val.startsWith("--")) return null;
+  return val.replace(/\s*\[.*?\]\s*$/, "")   // strip [OF] etc
+            .replace(/\s*(SP|RP)\s*$/, "")    // strip SP/RP
+            .replace(/\s*\(.*?\)\s*$/, "")    // strip (NYY) etc
+            .trim();
+}
+
+function extractPos(slotPos, val) {
+  // Determine if hitter or pitcher
+  if (slotPos === "P") return "pitching";
+  if (["C","1B","2B","3B","SS","OF"].includes(slotPos)) return "hitting";
+  // BN - guess from label
+  if (val && (val.includes(" SP") || val.includes(" RP"))) return "pitching";
+  return "hitting";
+}
+
+async function mlbFetch(url) {
+  // Try http first (MLB API supports http, avoids CORS preflight on some browsers)
+  const httpUrl = url.replace("https://statsapi", "http://statsapi");
+  for (const u of [httpUrl, url]) {
+    try {
+      const r = await fetch(u, { cache: "no-cache" });
+      if (!r.ok) continue;
+      const text = await r.text();
+      if (!text) continue;
+      const d = JSON.parse(text);
+      if (d && (d.stats || d.people || d.roster)) return d;
+    } catch {}
+  }
+  return null;
+}
+
+async function getPlayerId(name) {
+  if (playerIdCache[name]) return playerIdCache[name];
+  
+  // Check hardcoded map first — instant, no API call needed
+  // Try exact match, then normalized (no accents, no punctuation)
+  const normalize = s => s.toLowerCase()
+    .replace(/[áàäâ]/g,'a').replace(/[éèëê]/g,'e')
+    .replace(/[íìïî]/g,'i').replace(/[óòöô]/g,'o')
+    .replace(/[úùüû]/g,'u').replace(/[ñ]/g,'n')
+    .replace(/[^a-z0-9 ]/g,'').trim();
+  
+  const normName = normalize(name);
+  for (const [key, id] of Object.entries(PLAYER_ID_MAP)) {
+    if (normalize(key) === normName) {
+      playerIdCache[name] = id;
+      return id;
+    }
+  }
+  
+  // Fall back to MLB search API
+  const searchUrls = [
+    `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(name)}&sportIds=1`,
+    `https://statsapi.mlb.com/api/v1/people?search=${encodeURIComponent(name)}&sportId=1`,
+  ];
+  for (const url of searchUrls) {
+    const d = await mlbFetch(url);
+    const people = d?.people || [];
+    if (people.length) {
+      playerIdCache[name] = people[0].id;
+      return people[0].id;
+    }
+  }
+  return null;
+}
+
+async function getPlayerStats(playerId, group, playerName) {
+  // Check bulk cache first (fastest - loaded from preloadBulkStats)
+  const cached = await getStatFromBulk(playerId, group);
+  if (cached) return cached;
+
+  // Fall back to per-player fetch
+  const url = `https://statsapi.mlb.com/api/v1/people/${playerId}/stats?stats=season&group=${group}&season=2026&sportId=1`;
+  const d = await mlbFetch(url);
+  return d?.stats?.[0]?.splits?.[0]?.stat || null;
+}
+
+async function fetchTeamStats(team) {
+  isFetchingStats = true;
+  const btnEl = document.getElementById("fetch_btn_" + team);
+  if (btnEl) { btnEl.disabled = true; btnEl.textContent = "⏳ Loading..."; }
+
+  try {
+    const roster = SLOTS.map(([pos, label]) => {
+      const key = pos + "_" + label;
+      const val = (draftPicks[team] && draftPicks[team][key]) ? draftPicks[team][key] : "";
+      return { pos, label, val, isBench: pos === "BN" };
+    }).filter(r => r.val && !r.val.startsWith("--"));
+
+    if (!roster.length) {
+      if (btnEl) { btnEl.disabled = false; btnEl.textContent = "🔄 Pull Stats from MLB API"; }
+      return;
+    }
+
+    if (btnEl) btnEl.textContent = "⏳ Loading all stats...";
+    await preloadBulkStats();
+
+    // Fetch all player stats
+    const results = [];
+    for (const r of roster) {
+      const name = extractName(r.val);
+      if (!name) { results.push({ r, s: null, group: extractPos(r.pos, r.val), name: r.val }); continue; }
+      if (btnEl) btnEl.textContent = `⏳ ${name.split(" ").pop()}…`;
+      const group = extractPos(r.pos, r.val);
+      const id = await getPlayerId(name);
+      const s = id ? await getPlayerStats(id, group, name) : null;
+      results.push({ r, s, group, name });
+    }
+
+    // Accumulate totals
+    let totR=0,totHR=0,totRBI=0,totSB=0,totBB=0,totalH=0,totalAB=0;
+    let totW=0,totL=0,totSV=0,totK=0,totINN=0,totER=0,totQS=0;
+
+    const hitCols = ["R","HR","RBI","SB","AVG","BB"];
+    const pitCols = ["W-L","ERA","SV","INN","K","QS"];
+
+    const colHdr = cols => cols.map(c =>
+      `<div style="text-align:center;font-size:9px;font-weight:700;color:${CAT_COLORS[c]}">${c}</div>`
+    ).join("");
+
+    let hitRows = "";
+    let pitRows = "";
+
+    // Separate active vs bench results
+    const activeResults = results.filter(({r}) => !r.isBench);
+    const benchResults  = results.filter(({r}) => r.isBench);
+
+    // Only active players count toward totals
+    activeResults.forEach(({ r, s, group, name }) => {
+      if (group === "hitting") {
+        const rv=s?.runs??0, hr=s?.homeRuns??0, rbi=s?.rbi??0;
+        const sb=s?.stolenBases??0, bb=s?.baseOnBalls??0;
+        const avg=parseFloat(s?.avg||"0"), h=s?.hits??0, ab=s?.atBats??0;
+        if (s) { totR+=rv; totHR+=hr; totRBI+=rbi; totSB+=sb; totBB+=bb; totalH+=h; totalAB+=ab; }
+        hitRows += `<div class="player-stat-row">
+          <div><div class="p-name">${name}</div><div class="p-pos">${r.pos} · ${r.label}</div></div>
+          ${s ? [rv,hr,rbi,sb,avg.toFixed(3),bb].map(v=>`<div class="p-val">${v}</div>`).join("")
+              : Array(6).fill('<div class="p-val err">N/A</div>').join("")}
+        </div>`;
+      } else {
+        const w=s?.wins??0, sv=s?.saves??0, k=s?.strikeOuts??0;
+        const inn=parseFloat(s?.inningsPitched||"0"), er=parseFloat(s?.earnedRuns||"0"), qs=s?.qualityStarts??0;
+        const era=parseFloat(s?.era||"0");
+        const l = s?.losses??0;
+        if (s) { totW+=w; totL+=l; totSV+=sv; totK+=k; totINN+=inn; totER+=er; totQS+=qs; }
+        pitRows += `<div class="player-stat-row pitcher">
+          <div><div class="p-name">${name}</div><div class="p-pos">${r.pos} · ${r.label}</div></div>
+          ${s ? [`${w}-${l}`,era.toFixed(2),sv,inn.toFixed(1),k,qs].map(v=>`<div class="p-val">${v}</div>`).join("")
+              : Array(6).fill('<div class="p-val err">N/A</div>').join("")}
+        </div>`;
+      }
+    });
+
+    const teamERA = totINN > 0 ? ((totER*9)/totINN).toFixed(2) : "—";
+    const teamAVG = totalAB > 0 ? (totalH/totalAB).toFixed(3) : "—";
+
+    const totalsRowHit = `<div class="totals-row" style="grid-template-columns:1fr repeat(6,52px)">
+      <div class="totals-label">TOTALS</div>
+      ${[totR,totHR,totRBI,totSB,teamAVG,totBB].map(v=>`<span>${v}</span>`).join("")}
+    </div>`;
+    const totalsRowPit = `<div class="totals-row" style="grid-template-columns:1fr repeat(6,52px)">
+      <div class="totals-label">TOTALS</div>
+      ${[`${totW}-${totL}`,teamERA,totSV,totINN.toFixed(1),totK,totQS].map(v=>`<span>${v}</span>`).join("")}
+    </div>`;
+
+    // Save stats
+    const wl = totW - totL;
+    const autoStats = {
+      R:String(totR), HR:String(totHR), RBI:String(totRBI), SB:String(totSB),
+      AVG:teamAVG!=="—"?teamAVG:"", BB:String(totBB),
+      "W-L":String(wl), ERA:teamERA!=="—"?teamERA:"",
+      SV:String(totSV), INN:totINN>0?totINN.toFixed(1):"", K:String(totK), QS:String(totQS)
+    };
+    Object.entries(autoStats).forEach(([cat,val]) => { if(val !== "") stats[team][cat]=val; });
+    saveAll();
+
+    // Build complete panel HTML in one shot — no dynamic ID lookups needed
+    // Build bench rows with stats shown but grayed out
+    let benchHTML = "";
+    if (benchResults.length > 0) {
+      const hitCols2 = ["R","HR","RBI","SB","AVG","BB"];
+      const pitCols2 = ["W-L","ERA","SV","INN","K","QS"];
+      benchHTML = benchResults.map(({ r, s, group, name }) => {
+        const isBenchHitter = group === "hitting";
+        const vals = isBenchHitter
+          ? (() => { const rv=s?.runs??0,hr=s?.homeRuns??0,rbi=s?.rbi??0,sb=s?.stolenBases??0,bb=s?.baseOnBalls??0,avg=parseFloat(s?.avg||"0"); return [rv,hr,rbi,sb,avg.toFixed(3),bb]; })()
+          : (() => { const w=s?.wins??0,era=parseFloat(s?.era||"0"),sv=s?.saves??0,inn=parseFloat(s?.inningsPitched||"0"),k=s?.strikeOuts??0,qs=s?.qualityStarts??0; return [w,era.toFixed(2),sv,inn.toFixed(1),k,qs]; })();
+        return `<div class="player-stat-row" style="opacity:0.55;border-left:2px solid rgba(255,255,255,0.1)">
+          <div>
+            <div class="p-name">${name}</div>
+            <div class="p-pos" style="color:#94a3b8">${r.label} · <span style="color:#64748b;font-size:9px">BN — not counted</span></div>
+          </div>
+          ${s ? vals.map(v=>`<div class="p-val" style="color:rgba(255,255,255,0.4)">${v}</div>`).join("")
+              : Array(6).fill('<div class="p-val" style="color:rgba(255,255,255,0.2)">—</div>').join("")}
+        </div>`;
+      }).join("");
+    } else {
+      // No bench players drafted — show empty slots
+      const benchSlots2 = SLOTS.filter(([pos]) => pos === "BN");
+      benchHTML = benchSlots2.map(([pos,label]) => {
+        const key = pos+"_"+label;
+        const val = (draftPicks[team]&&draftPicks[team][key])?draftPicks[team][key]:"";
+        const isEmpty = !val||val.startsWith("--");
+        return `<div style="padding:7px 10px;border-top:1px solid rgba(255,255,255,0.05);font-size:12px;color:rgba(255,255,255,0.2)">
+          <span style="font-size:9px;color:rgba(255,255,255,0.25);margin-right:8px">${label}</span>${isEmpty?"Empty":val}
+        </div>`;
+      }).join("");
+    }
+
+    const fullHTML = `
+      <div class="card" style="padding:0;overflow:hidden;margin-bottom:10px">
+        <div class="section-hdr" style="grid-template-columns:1fr repeat(6,52px)">
+          <span>⚾ HITTERS</span>${colHdr(hitCols)}
+        </div>
+        ${hitRows}
+        ${totalsRowHit}
+      </div>
+      <div class="card" style="padding:0;overflow:hidden;margin-bottom:10px">
+        <div class="section-hdr" style="grid-template-columns:1fr repeat(6,52px)">
+          <span>⚡ PITCHERS</span>${colHdr(pitCols)}
+        </div>
+        ${pitRows}
+        ${totalsRowPit}
+      </div>
+      <div class="card" style="padding:0;overflow:hidden;margin-bottom:10px">
+        <div class="section-hdr" style="grid-template-columns:1fr repeat(6,52px)">
+          <span>🪑 BENCH <span style="font-size:9px;opacity:0.5;font-weight:400">(stats shown, not counted)</span></span>
+          ${colHdr(hitCols)}
+        </div>
+        ${benchHTML}
+      </div>`;
+
+    // Write everything at once to rosterEl
+    const rosterEl = document.getElementById("roster_" + team);
+    if (rosterEl) rosterEl.innerHTML = fullHTML;
+
+    // Now update standings and summary after everything is written
+    renderTeamSummary(team);
+    renderStats();
+
+    const loaded = results.filter(r => r.s).length;
+    if (btnEl) {
+      btnEl.disabled = false;
+      btnEl.textContent = loaded === results.length
+        ? `✅ Loaded ${loaded}/${results.length}`
+        : `⚠️ ${loaded}/${results.length} — tap to retry`;
+      setTimeout(() => { if(btnEl) btnEl.textContent = "🔄 Pull Stats from MLB API"; }, 5000);
+    }
+
+  } catch(err) {
+    console.error("fetchTeamStats error:", err);
+    if (btnEl) { btnEl.disabled = false; btnEl.textContent = "🔄 Pull Stats from MLB API"; }
+  } finally {
+    isFetchingStats = false;
+  }
+}
+
+function renderTeamSummary(team) {
+  const ranks = getRotoRanks();
+  const totals = getTotals(ranks);
+  const sorted = [...TEAMS].sort((a,b)=>totals[b]-totals[a]);
+  const pl = sorted.indexOf(team)+1;
+  const pts = totals[team];
+  const pickNum = TEAMS.indexOf(team)+1;
+  const md = medal(pl);
+
+  const ptsEl = document.getElementById("pts_"+team);
+  if (ptsEl) {
+    ptsEl.innerHTML = pts > 0
+      ? `<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:2px">Roto Points</div>
+         <div style="font-size:32px;font-weight:800;color:#fbbf24;line-height:1">${pts}</div>
+         <div style="font-size:11px;color:rgba(255,255,255,0.4)">/ 132 max · ${md||"#"+pl+" of 11"}</div>`
+      : `<div style="font-size:11px;color:rgba(255,255,255,0.3)">Pick #${pickNum} of 11 &middot; No stats yet</div>`;
+  }
+
+  const statsEl = document.getElementById("stats_"+team);
+  if (statsEl) {
+    statsEl.innerHTML = ALL_CATS.map(cat => {
+      const v = stats[team][cat];
+      const r = ranks[team][cat];
+      const has = v !== "" && !isNaN(parseFloat(v));
+      const good = r >= 9; const bad = r && r <= 4;
+      const vc = good ? "#4ade80" : bad ? "#f87171" : "#e2e8f0";
+      return `<div class="team-stat-box">
+        <div class="team-stat-lbl" style="color:${CAT_COLORS[cat]}">${cat}</div>
+        <div class="team-stat-val" style="color:${vc}">${has ? fmtVal(cat,v) : "—"}</div>
+        ${has && r ? `<div class="team-stat-rank">#${r}</div>` : ""}
+      </div>`;
+    }).join("");
+  }
+}
+
+function renderTeamPanel(team) {
+  renderTeamSummary(team);
+  // Build roster table with live stat columns
+  const rosterEl = document.getElementById("roster_"+team);
+  if (!rosterEl) return;
+
+  const hitters = SLOTS.filter(([pos]) => ["C","1B","2B","3B","SS","OF"].includes(pos));
+  const pitchers = SLOTS.filter(([pos]) => pos === "P");
+  const bench    = SLOTS.filter(([pos]) => pos === "BN");
+
+  const hitCols = ["R","HR","RBI","SB","AVG","BB"];
+  const pitCols = ["W-L","ERA","SV","INN","K","QS"];
+
+  const colHdr = (cols) => cols.map(c =>
+    `<div style="text-align:center;font-size:9px;font-weight:700;color:${CAT_COLORS[c]}">${c}</div>`
+  ).join("");
+
+  const slotRows = (slots) => slots.map(([pos, label]) => {
+    const key = pos+"_"+label;
+    const val = (draftPicks[team] && draftPicks[team][key]) ? draftPicks[team][key] : "";
+    const isEmpty = !val || val.startsWith("--");
+    const color = POS_COLORS[pos]||"#555";
+    return `<div class="player-stat-row">
+      <div>
+        <div class="p-name" style="color:${isEmpty?"rgba(255,255,255,0.2)":"#e2e8f0"}">${isEmpty?"Empty":val}</div>
+        <div class="p-pos">${pos} · ${label}</div>
+      </div>
+      ${Array(6).fill('<div class="p-val" style="color:rgba(255,255,255,0.2)">—</div>').join("")}
+    </div>`;
+  }).join("");
+
+  rosterEl.innerHTML = `
+    <!-- Hitters -->
+    <div class="card" style="padding:0;overflow:hidden;margin-bottom:10px">
+      <div class="section-hdr" style="grid-template-columns:1fr repeat(6,52px)">
+        <span>⚾ Hitters</span>${colHdr(hitCols)}
+      </div>
+      <div id="hit_rows_${team}">${slotRows(hitters)}</div>
+    </div>
+
+    <!-- Pitchers -->
+    <div class="card" style="padding:0;overflow:hidden;margin-bottom:10px">
+      <div class="section-hdr" style="grid-template-columns:1fr repeat(6,52px)">
+        <span>⚡ Pitchers</span>${colHdr(pitCols)}
+      </div>
+      <div id="pit_rows_${team}">${slotRows(pitchers)}</div>
+    </div>
+
+    <!-- Bench -->
+    <div class="card" style="padding:0;overflow:hidden;margin-bottom:10px">
+      <div style="padding:7px 10px;background:rgba(0,0,0,0.25);font-size:10px;font-weight:700;color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase">🪑 Bench</div>
+      <div id="bench_rows_${team}">
+        ${bench.map(([pos,label]) => {
+          const key = pos+"_"+label;
+          const val = (draftPicks[team]&&draftPicks[team][key])?draftPicks[team][key]:"";
+          const isEmpty = !val||val.startsWith("--");
+          return `<div style="padding:7px 10px;border-top:1px solid rgba(255,255,255,0.05);font-size:12px;color:${isEmpty?"rgba(255,255,255,0.2)":"#e2e8f0"};font-weight:${isEmpty?400:600}">
+            <span style="font-size:9px;color:rgba(255,255,255,0.35);margin-right:8px">${label}</span>${isEmpty?"Empty":val}
+          </div>`;
+        }).join("")}
+      </div>
+    </div>
+  `;
+}
+
+
+// ── STAT LOOKUP ────────────────────────────────────────────────────────────
+let lookupType = "hitting";
+let lookupTimeout = null;
+
+function setLookupType(type) {
+  lookupType = type;
+  document.querySelectorAll(".lookup-type-btn").forEach(b => {
+    b.classList.toggle("active", b.textContent.includes(type === "hitting" ? "Hitting" : "Pitching"));
+  });
+  clearLookup();
+}
+
+function onLookupInput(val) {
+  clearTimeout(lookupTimeout);
+  if (val.length < 2) { document.getElementById("lookupSuggestions").innerHTML = ""; return; }
+  lookupTimeout = setTimeout(() => doLookup(val), 600);
+}
+
+async function doLookup(nameOverride) {
+  const name = nameOverride || document.getElementById("lookupInput").value.trim();
+  if (!name || name.length < 2) return;
+
+  const resultsEl = document.getElementById("lookupResults");
+  const bodyEl = document.getElementById("lookupBody");
+  resultsEl.style.display = "block";
+  bodyEl.innerHTML = '<div class="lookup-loading">Searching MLB Stats API...</div>';
+
+  try {
+    // Step 1: Search for player
+    const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(name)}&sportIds=1`;
+    const searchRes = await fetch(searchUrl);
+    const searchData = await searchRes.json();
+    const people = searchData.people || [];
+
+    if (!people.length) {
+      bodyEl.innerHTML = '<div class="lookup-empty">No players found. Try a different spelling.</div>';
+      return;
+    }
+
+    // Step 2: Fetch stats for top matches (up to 5)
+    const top = people.slice(0, 5);
+    const statPromises = top.map(p =>
+      fetch(`https://statsapi.mlb.com/api/v1/people/${p.id}/stats?stats=season&group=${lookupType}&season=2026&sportId=1`)
+        .then(r => r.json()).catch(() => null)
+    );
+    const statResults = await Promise.all(statPromises);
+
+    let html = "";
+    let found = 0;
+
+    top.forEach((player, i) => {
+      const statData = statResults[i];
+      const splits = statData?.stats?.[0]?.splits || [];
+      if (!splits.length) return;
+      const s = splits[0].stat;
+      found++;
+
+      const teamName = splits[0].team?.name || player.currentTeam?.name || "—";
+
+      if (lookupType === "hitting") {
+        html += `<div class="lookup-player-row">
+          <div>
+            <div class="lookup-player-info">${player.fullName}</div>
+            <div class="lookup-player-team">${teamName} · ${player.primaryPosition?.abbreviation || "—"}</div>
+          </div>
+          <div class="lookup-stats-row">
+            ${[["R","runs"],["HR","homeRuns"],["RBI","rbi"],["SB","stolenBases"],["AVG","avg"],["BB","baseOnBalls"]]
+              .map(([lbl,key]) => `<div class="lookup-stat">
+                <div class="lookup-stat-lbl" style="color:${CAT_COLORS[lbl]||"#aaa"}">${lbl}</div>
+                <div class="lookup-stat-val">${lbl==="AVG" ? (parseFloat(s[key]||0)).toFixed(3) : (s[key]??"—")}</div>
+              </div>`).join("")}
+          </div>
+        </div>`;
+      } else {
+        // Pitching
+        const ip = parseFloat(s.inningsPitched || 0);
+        const era = parseFloat(s.era || 0);
+        const qs = s.qualityStarts ?? "—";
+        html += `<div class="lookup-player-row">
+          <div>
+            <div class="lookup-player-info">${player.fullName}</div>
+            <div class="lookup-player-team">${teamName} · ${player.primaryPosition?.abbreviation || "—"}</div>
+          </div>
+          <div class="lookup-stats-row">
+            ${[["W","wins"],["ERA","era"],["SV","saves"],["INN","inningsPitched"],["K","strikeOuts"]]
+              .map(([lbl,key]) => `<div class="lookup-stat">
+                <div class="lookup-stat-lbl" style="color:${CAT_COLORS[lbl]||"#aaa"}">${lbl}</div>
+                <div class="lookup-stat-val">${lbl==="ERA"?(parseFloat(s[key]||0)).toFixed(2):lbl==="INN"?(parseFloat(s[key]||0)).toFixed(1):(s[key]??"—")}</div>
+              </div>`).join("")}
+            <div class="lookup-stat">
+              <div class="lookup-stat-lbl" style="color:${CAT_COLORS["QS"]||"#aaa"}">QS</div>
+              <div class="lookup-stat-val">${qs}</div>
+            </div>
+          </div>
+        </div>`;
+      }
+    });
+
+    bodyEl.innerHTML = found ? html : '<div class="lookup-empty">No 2026 stats found yet for matching players.</div>';
+
+  } catch(e) {
+    bodyEl.innerHTML = `<div class="lookup-error">⚠ Could not reach MLB Stats API. Check your connection and try again.<br><small style="opacity:0.6">${e.message}</small></div>`;
+  }
+}
+
+function clearLookup() {
+  document.getElementById("lookupInput").value = "";
+  document.getElementById("lookupResults").style.display = "none";
+  document.getElementById("lookupBody").innerHTML = "";
+  document.getElementById("lookupSuggestions").innerHTML = "";
+}
+
+
+// ── REFRESH ALL TEAMS ──────────────────────────────────────────────────────
+async function refreshAllTeams() {
+  const btn = document.getElementById("refresh_all_btn");
+  if (btn) { btn.disabled = true; btn.textContent = "⏳ Refreshing all teams..."; }
+  for (const team of TEAMS) {
+    if (btn) btn.textContent = `⏳ Fetching ${team}...`;
+    await fetchTeamStats(team);
+  }
+  renderStats();
+  if (btn) { btn.disabled = false; btn.textContent = "🔄 Refresh All Teams"; }
+  showFlash("All team stats updated!", "ok");
+}
+
+// ── FLASH ─────────────────────────────────────────────────────────────────────
+function showFlash(msg, type="ok") {
+  const el=document.getElementById("flash");
+  el.className=`flash ${type}`; el.textContent=msg; el.style.display="block";
+  setTimeout(()=>el.style.display="none",2500);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+loadAll();
+loadMoves();
+loadPaid();
+renderAll();
+startPolling();
+</script>
+<script>
+// Inline service worker for PWA support
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    try {
+      const swCode = atob("Y29uc3QgQ0FDSEU9ImZhbnRhc3ktYmItMjAyNi12MSI7CnNlbGYuYWRkRXZlbnRMaXN0ZW5lcigiaW5zdGFsbCIsZT0+e3NlbGYuc2tpcFdhaXRpbmcoKTt9KTsKc2VsZi5hZGRFdmVudExpc3RlbmVyKCJhY3RpdmF0ZSIsZT0+e3NlbGYuY2xpZW50cy5jbGFpbSgpO30pOwpzZWxmLmFkZEV2ZW50TGlzdGVuZXIoImZldGNoIixlPT57CiAgaWYoZS5yZXF1ZXN0LnVybC5pbmNsdWRlcygic3RhdHNhcGkubWxiLmNvbSIpfHxlLnJlcXVlc3QudXJsLmluY2x1ZGVzKCJjb3JzcHJveHkiKXx8ZS5yZXF1ZXN0LnVybC5pbmNsdWRlcygiYWxsb3JpZ2lucyIpKXsKICAgIHJldHVybjsKICB9Cn0pOw==");
+      const blob = new Blob([swCode], {type: 'application/javascript'});
+      const swUrl = URL.createObjectURL(blob);
+      navigator.serviceWorker.register(swUrl)
+        .then(() => console.log('SW ready'))
+        .catch(() => {});
+    } catch(e) {}
+  });
+}
+</script>
+
+
+
+</body>
+</html>
